@@ -453,8 +453,6 @@ void  NodeServer::drop_connection(CryptoNoteConnectionContext& context, bool add
     m_port = std::to_string(config.getBindPort());
     m_external_port = config.getExternalPort();
     m_allow_local_ip = config.getAllowLocalIp();
-    m_network_id = config.getNetworkId();
-    m_p2pStatTrustedPubKey = config.getP2pStatTrustedPubKey();
 
     auto peers = config.getPeers();
     std::copy(peers.begin(), peers.end(), std::back_inserter(m_command_line_peers));
@@ -502,7 +500,7 @@ void  NodeServer::drop_connection(CryptoNoteConnectionContext& context, bool add
   //-----------------------------------------------------------------------------------
   
   bool NodeServer::init(const NetNodeConfig& config) {
-    if (!config.getTestnet() && config.getSeedNodes().size() == 0) {
+    if (!config.getTestnet()) {
       for (auto seed : CryptoNote::SEED_NODES) {
         append_net_address(m_seed_nodes, seed);
       }
@@ -1057,7 +1055,7 @@ void  NodeServer::drop_connection(CryptoNoteConnectionContext& context, bool add
     }
 
     Crypto::PublicKey pk;
-    Common::podFromHex(m_p2pStatTrustedPubKey, pk);
+    Common::podFromHex(CryptoNote::P2P_STAT_TRUSTED_PUB_KEY, pk);
     Crypto::Hash h = get_proof_of_trust_hash(tr);
     if (!Crypto::check_signature(h, pk, tr.sign)) {
       logger(ERROR) << "check_trust failed: sign check failed";

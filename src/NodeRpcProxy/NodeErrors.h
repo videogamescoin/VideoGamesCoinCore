@@ -40,7 +40,7 @@ public:
   static NodeErrorCategory INSTANCE;
 
   virtual const char* name() const throw() override {
-    return "NodeErrorCategory";
+    return "\nNodeErrorCategory";
   }
 
   virtual std::error_condition default_error_condition(int ev) const throw() override {
@@ -55,7 +55,7 @@ public:
     case NODE_BUSY:           return "Node is busy";
     case INTERNAL_NODE_ERROR: return "Internal node error";
     case REQUEST_ERROR:       return "Error in request parameters";
-    case CONNECT_ERROR:       return "Can't connect to daemon";
+    case CONNECT_ERROR:       return "\n\nCan't connect to the VGC daemon... Start the VGC daemon\n";
     default:                  return "Unknown error";
     }
   }

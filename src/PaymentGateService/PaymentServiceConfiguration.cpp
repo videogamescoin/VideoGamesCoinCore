@@ -36,7 +36,7 @@ Configuration::Configuration() {
   logFile = "walletd.log";
   testnet = false;
   printAddresses = false;
-  syncFromZero = false;
+  syncFromZero = true;
   logLevel = Logging::INFO;
   bindAddress = "";
   bindPort = 0;

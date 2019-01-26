@@ -98,9 +98,6 @@ bool new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey &view_key, cons
     bool ask_wallet_create_if_needed();
 
     void printConnectionError() const;
-    std::string generate_mnemonic(Crypto::SecretKey &);
-    void log_incorrect_words(std::vector<std::string>);
-    bool is_valid_mnemonic(std::string &, Crypto::SecretKey &);
 
     //---------------- IWalletLegacyObserver -------------------------
     virtual void initCompleted(std::error_code result) override;
@@ -165,10 +162,6 @@ std::string m_import_new;
     std::string m_daemon_address;
     std::string m_daemon_host;
     uint16_t m_daemon_port;
-uint32_t m_mandatoryTransaction;
-uint16_t m_minMixin;
-uint8_t m_mandatoryMixinBlockVersion;
-uint64_t m_maxTransactionSizeLimit;
 uint64_t m_default_fee;
 
     std::string m_wallet_file;

@@ -34,7 +34,6 @@ class AccountBase;
 
 class Currency {
 public:
-  std::string cryptonoteName() const { return m_cryptonoteName; }
   uint32_t maxBlockHeight() const { return m_maxBlockHeight; }
   size_t maxBlockBlobSize() const { return m_maxBlockBlobSize; }
   size_t maxTxSize() const { return m_maxTxSize; }
@@ -58,15 +57,17 @@ public:
   uint64_t tailEmissionReward() const { return m_tailEmissionReward; }
   uint32_t zawyDifficultyBlockIndex() const { return m_zawyDifficultyBlockIndex; }
   uint32_t zawyDifficultyLastBlock() const { return m_zawyDifficultyLastBlock; }
+  uint64_t zawyDifficultyMin() const { return m_zawyDifficultyMin; }
   uint32_t zawyLWMADifficultyBlockIndex() const { return m_zawyLWMADifficultyBlockIndex; }
   uint32_t zawyLWMADifficultyLastBlock() const { return m_zawyLWMADifficultyLastBlock; }
+  uint64_t zawyLWMADifficultyMin() const { return m_zawyLWMADifficultyMin; }
   size_t zawyLWMADifficultyN() const { return m_zawyLWMADifficultyN; }
+  uint32_t zawyLWMA2DifficultyBlockIndex() const { return m_zawyLWMA2DifficultyBlockIndex; }
+  uint32_t zawyLWMA2DifficultyLastBlock() const { return m_zawyLWMA2DifficultyLastBlock; }
+  uint64_t zawyLWMA2DifficultyMin() const { return m_zawyLWMA2DifficultyMin; }
+  size_t zawyLWMA2DifficultyN() const { return m_zawyLWMA2DifficultyN; }
   uint32_t buggedZawyDifficultyBlockIndex() const { return m_buggedZawyDifficultyBlockIndex; }
   size_t blockGrantedFullRewardZone() const { return m_blockGrantedFullRewardZone; }
-  uint64_t expectedNumberOfBlocksPerDay() const { return m_expectedNumberOfBlocksPerDay; }
-  size_t blockGrantedFullRewardZoneV1() const { return m_blockGrantedFullRewardZoneV1; }
-  size_t blockGrantedFullRewardZoneV2() const { return m_blockGrantedFullRewardZoneV2; }
-  uint32_t keyImageCheckingBlockIndex() const { return m_keyImageCheckingBlockIndex; }
   size_t blockGrantedFullRewardZoneByBlockVersion(uint8_t blockMajorVersion) const;
   size_t minerTxBlobReservedSize() const { return m_minerTxBlobReservedSize; }
   uint64_t maxTransactionSizeLimit() const { return m_maxTransactionSizeLimit; }
@@ -79,12 +80,6 @@ public:
 
   uint64_t difficultyTarget() const { return m_difficultyTarget; }
   size_t difficultyWindow() const { return m_difficultyWindow; }
-  size_t difficultyWindowV1() const { return m_difficultyWindowV1; }
-  size_t difficultyWindowV2() const { return m_difficultyWindowV2; }
-  size_t difficultyLagV1() const { return m_difficultyLagV1; }
-  size_t difficultyLagV2() const { return m_difficultyLagV2; }
-  size_t difficultyCutV1() const { return m_difficultyCutV1; }
-  size_t difficultyCutV2() const { return m_difficultyCutV2; }
 size_t difficultyWindowByBlockVersion(uint8_t blockMajorVersion) const;
   size_t difficultyLag() const { return m_difficultyLag; }
 size_t difficultyLagByBlockVersion(uint8_t blockMajorVersion) const;
@@ -148,6 +143,7 @@ size_t difficultyBlocksCountByBlockVersion(uint8_t blockMajorVersion) const;
   bool parseAmount(const std::string& str, uint64_t& amount) const;
 
   Difficulty nextDifficulty(std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
+Difficulty nextDifficultyZawyLWMA2(uint8_t version, uint32_t blockIndex, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
 Difficulty nextDifficultyZawyLWMA(uint8_t version, uint32_t blockIndex, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
 Difficulty nextDifficultyZawyV1(uint8_t version, uint32_t blockIndex, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
 Difficulty nextDifficulty(uint8_t version, uint32_t blockIndex, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
@@ -170,7 +166,6 @@ private:
   bool generateGenesisBlock();
 
 private:
-  std::string m_cryptonoteName;
   uint32_t m_maxBlockHeight;
   size_t m_maxBlockBlobSize;
   size_t m_maxTxSize;
@@ -194,15 +189,17 @@ private:
   uint64_t m_tailEmissionReward;
   uint32_t m_zawyDifficultyBlockIndex;
   uint32_t m_zawyDifficultyLastBlock;
+  uint64_t m_zawyDifficultyMin;
   uint32_t m_zawyLWMADifficultyBlockIndex;
   uint32_t m_zawyLWMADifficultyLastBlock;
+  uint64_t m_zawyLWMADifficultyMin;
   size_t m_zawyLWMADifficultyN;
+  uint32_t m_zawyLWMA2DifficultyBlockIndex;
+  uint32_t m_zawyLWMA2DifficultyLastBlock;
+  uint64_t m_zawyLWMA2DifficultyMin;
+  size_t m_zawyLWMA2DifficultyN;
   uint32_t m_buggedZawyDifficultyBlockIndex;
   size_t m_blockGrantedFullRewardZone;
-  uint64_t m_expectedNumberOfBlocksPerDay;
-  size_t m_blockGrantedFullRewardZoneV1;
-  size_t m_blockGrantedFullRewardZoneV2;
-  uint32_t m_keyImageCheckingBlockIndex;
   size_t m_minerTxBlobReservedSize;
   uint64_t m_maxTransactionSizeLimit;
 
@@ -213,12 +210,6 @@ private:
   uint64_t m_defaultDustThreshold;
 
   uint64_t m_difficultyTarget;
-  size_t m_difficultyWindowV1;
-  size_t m_difficultyWindowV2;
-  size_t m_difficultyLagV1;
-  size_t m_difficultyLagV2;
-  size_t m_difficultyCutV1;
-  size_t m_difficultyCutV2;
   size_t m_difficultyWindow;
   size_t m_difficultyLag;
   size_t m_difficultyCut;
@@ -251,7 +242,6 @@ private:
   static const std::vector<uint64_t> PRETTY_AMOUNTS;
 
   bool m_testnet;
-  std::string m_genesisCoinbaseTxHex;
   bool m_isBlockexplorer;
 
   BlockTemplate genesisBlockTemplate;
@@ -276,7 +266,6 @@ public:
 
   Transaction generateGenesisTransaction();
   Transaction generateGenesisTransaction(const std::vector<AccountPublicAddress>& targets);
-  CurrencyBuilder& cryptonoteName(std::string val) { m_currency.m_cryptonoteName = val; return *this; }
   CurrencyBuilder& maxBlockNumber(uint32_t val) { m_currency.m_maxBlockHeight = val; return *this; }
   CurrencyBuilder& maxBlockBlobSize(size_t val) { m_currency.m_maxBlockBlobSize = val; return *this; }
   CurrencyBuilder& maxTxSize(size_t val) { m_currency.m_maxTxSize = val; return *this; }
@@ -300,15 +289,17 @@ public:
   CurrencyBuilder& tailEmissionReward(uint64_t val) { m_currency.m_tailEmissionReward = val; return *this; }
   CurrencyBuilder& zawyDifficultyBlockIndex(uint32_t val) { m_currency.m_zawyDifficultyBlockIndex = val; return *this; }
   CurrencyBuilder& zawyDifficultyLastBlock(uint32_t val) { m_currency.m_zawyDifficultyLastBlock = val; return *this; }
+  CurrencyBuilder& zawyDifficultyMin(uint64_t val) { m_currency.m_zawyDifficultyMin = val; return *this; }
   CurrencyBuilder& zawyLWMADifficultyBlockIndex(uint32_t val) { m_currency.m_zawyLWMADifficultyBlockIndex = val; return *this; }
   CurrencyBuilder& zawyLWMADifficultyLastBlock(uint32_t val) { m_currency.m_zawyLWMADifficultyLastBlock = val; return *this; }
+  CurrencyBuilder& zawyLWMADifficultyMin(uint64_t val) { m_currency.m_zawyLWMADifficultyMin = val; return *this; }
   CurrencyBuilder& zawyLWMADifficultyN(size_t val) { m_currency.m_zawyLWMADifficultyN = val; return *this; }
+  CurrencyBuilder& zawyLWMA2DifficultyBlockIndex(uint32_t val) { m_currency.m_zawyLWMA2DifficultyBlockIndex = val; return *this; }
+  CurrencyBuilder& zawyLWMA2DifficultyLastBlock(uint32_t val) { m_currency.m_zawyLWMA2DifficultyLastBlock = val; return *this; }
+  CurrencyBuilder& zawyLWMA2DifficultyMin(uint64_t val) { m_currency.m_zawyLWMA2DifficultyMin = val; return *this; }
+  CurrencyBuilder& zawyLWMA2DifficultyN(size_t val) { m_currency.m_zawyLWMA2DifficultyN = val; return *this; }
   CurrencyBuilder& buggedZawyDifficultyBlockIndex(uint32_t val) { m_currency.m_buggedZawyDifficultyBlockIndex = val; return *this; }
   CurrencyBuilder& blockGrantedFullRewardZone(size_t val) { m_currency.m_blockGrantedFullRewardZone = val; return *this; }
-  CurrencyBuilder& expectedNumberOfBlocksPerDay(uint64_t val) { m_currency.m_expectedNumberOfBlocksPerDay = val; return *this; }
-  CurrencyBuilder& blockGrantedFullRewardZoneV1(size_t val) { m_currency.m_blockGrantedFullRewardZoneV1 = val; return *this; }
-  CurrencyBuilder& blockGrantedFullRewardZoneV2(size_t val) { m_currency.m_blockGrantedFullRewardZoneV2 = val; return *this; }
-  CurrencyBuilder& keyImageCheckingBlockIndex(uint32_t val) { m_currency.m_keyImageCheckingBlockIndex = val; return *this; }
   CurrencyBuilder& minerTxBlobReservedSize(size_t val) { m_currency.m_minerTxBlobReservedSize = val; return *this; }
   CurrencyBuilder& maxTransactionSizeLimit(uint64_t val) { m_currency.m_maxTransactionSizeLimit = val; return *this; }
 
@@ -318,12 +309,6 @@ public:
   CurrencyBuilder& defaultDustThreshold(uint64_t val) { m_currency.m_defaultDustThreshold = val; return *this; }
 
   CurrencyBuilder& difficultyTarget(uint64_t val) { m_currency.m_difficultyTarget = val; return *this; }
-  CurrencyBuilder& difficultyWindowV1(size_t val) { m_currency.m_difficultyWindowV1 = val; return *this; }
-  CurrencyBuilder& difficultyWindowV2(size_t val) { m_currency.m_difficultyWindowV2 = val; return *this; }
-  CurrencyBuilder& difficultyLagV1(size_t val) { m_currency.m_difficultyLagV1 = val; return *this; }
-  CurrencyBuilder& difficultyLagV2(size_t val) { m_currency.m_difficultyLagV2 = val; return *this; }
-  CurrencyBuilder& difficultyCutV1(size_t val) { m_currency.m_difficultyCutV1 = val; return *this; }
-  CurrencyBuilder& difficultyCutV2(size_t val) { m_currency.m_difficultyCutV2 = val; return *this; }
   CurrencyBuilder& difficultyWindow(size_t val);
   CurrencyBuilder& difficultyLag(size_t val) { m_currency.m_difficultyLag = val; return *this; }
   CurrencyBuilder& difficultyCut(size_t val) { m_currency.m_difficultyCut = val; return *this; }
@@ -354,7 +339,6 @@ public:
   CurrencyBuilder& txPoolFileName(const std::string& val) { m_currency.m_txPoolFileName = val; return *this; }
   
   CurrencyBuilder& isBlockexplorer(const bool val) { m_currency.m_isBlockexplorer = val; return *this; }
-  CurrencyBuilder& genesisCoinbaseTxHex(const std::string& val) { m_currency.m_genesisCoinbaseTxHex = val; return *this; }
   CurrencyBuilder& testnet(bool val) { m_currency.m_testnet = val; return *this; }
 
 private:

@@ -99,7 +99,6 @@ public:
   virtual CoreStatistics getCoreStatistics() const override;
 
   //ICoreInformation
-     Checkpoints get_checkpoints();
   virtual size_t getPoolTransactionCount() const override;
   virtual size_t getBlockchainTransactionCount() const override;
   virtual size_t getAlternativeBlockCount() const override;

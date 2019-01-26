@@ -144,8 +144,6 @@ namespace CryptoNote
     size_t get_outgoing_connections_count();
 
     CryptoNote::PeerlistManager& getPeerlistManager() { return m_peerlist; }
-    std::vector<NetworkAddress> get_seed_nodes(){return m_seed_nodes;}
-    boost::uuids::uuid get_network_id(){return m_network_id;}
 
   private:
 
@@ -278,7 +276,6 @@ bool add_host_fail(const uint32_t address_ip);
     std::list<PeerlistEntry> m_command_line_peers;
     uint64_t m_peer_livetime;
     boost::uuids::uuid m_network_id;
-    std::string m_p2pStatTrustedPubKey;
   std::map<uint32_t, time_t> m_blocked_hosts;
   std::map<uint32_t, uint64_t> m_host_fails_score;
 

@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018, The B2Bcoin developers
 //
 // This file is part of Bytecoin.
 //
@@ -38,7 +39,6 @@
 #include "Common/Util.h"
 #include "CryptoNoteCore/CryptoNoteFormatUtils.h"
 #include "CryptoNoteProtocol/CryptoNoteProtocolHandler.h"
-#include "Mnemonics/electrum-words.cpp"
 #include "NodeRpcProxy/NodeRpcProxy.h"
 #include "Rpc/CoreRpcServerCommandsDefinitions.h"
 #include "Rpc/HttpClient.h"
@@ -72,42 +72,10 @@ const command_line::arg_descriptor<std::string> arg_generate_new_wallet = { "gen
 const command_line::arg_descriptor<std::string> arg_daemon_address = { "daemon-address", "Use daemon instance at <host>:<port>", "" };
 const command_line::arg_descriptor<std::string> arg_daemon_host = { "daemon-host", "Use daemon instance at host <arg> instead of localhost", "" };
 const command_line::arg_descriptor<std::string> arg_password = { "password", "Wallet password", "", true };
-const command_line::arg_descriptor<uint16_t> arg_daemon_port = { "daemon-port", "Use daemon instance at port <arg> instead of 8081", 0 };
+const command_line::arg_descriptor<uint16_t> arg_daemon_port = { "daemon-port", "Use daemon instance at port <arg> instead of 39156", 0 };
 const command_line::arg_descriptor<uint32_t> arg_log_level = { "set_log", "", INFO, true };
   const command_line::arg_descriptor<uint64_t> arg_DEFAULT_FEE  = {"DEFAULT_FEE", "Default fee", CryptoNote::parameters::DEFAULT_FEE};  
   const command_line::arg_descriptor<bool>      arg_SYNC_FROM_ZERO  = {"SYNC_FROM_ZERO", "Sync from block 0. Use for premine wallet or brainwallet", false};
-  const command_line::arg_descriptor<std::string> arg_config_file = {"config-file", "Specify configuration file", ""};  
-  const command_line::arg_descriptor<std::string> arg_GENESIS_COINBASE_TX_HEX  = {"GENESIS_COINBASE_TX_HEX", "Genesis transaction hex", CryptoNote::parameters::GENESIS_COINBASE_TX_HEX};  
-  const command_line::arg_descriptor<uint64_t>    arg_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX  = {"CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX", "uint64_t", CryptoNote::parameters::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX};
-  const command_line::arg_descriptor<uint64_t>    arg_MONEY_SUPPLY  = {"MONEY_SUPPLY", "uint64_t", CryptoNote::parameters::MONEY_SUPPLY};
-  const command_line::arg_descriptor<unsigned>    arg_EMISSION_SPEED_FACTOR  = {"EMISSION_SPEED_FACTOR", "unsigned", CryptoNote::parameters::EMISSION_SPEED_FACTOR};
-  const command_line::arg_descriptor<size_t>      arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE  = {"CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE", "size_t", CryptoNote::parameters::CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE};
-  const command_line::arg_descriptor<size_t>      arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1  = {"CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1", "size_t", CryptoNote::parameters::CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1};
-  const command_line::arg_descriptor<size_t>      arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2  = {"CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2", "size_t", CryptoNote::parameters::CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2};
-  const command_line::arg_descriptor<uint64_t>    arg_CRYPTONOTE_DISPLAY_DECIMAL_POINT  = {"CRYPTONOTE_DISPLAY_DECIMAL_POINT", "uint64_t", CryptoNote::parameters::CRYPTONOTE_DISPLAY_DECIMAL_POINT};
-  const command_line::arg_descriptor<uint64_t>    arg_MINIMUM_FEE  = {"MINIMUM_FEE", "uint64_t", CryptoNote::parameters::MINIMUM_FEE};
-  const command_line::arg_descriptor<uint64_t>    arg_DEFAULT_DUST_THRESHOLD  = {"DEFAULT_DUST_THRESHOLD", "uint64_t", CryptoNote::parameters::DEFAULT_DUST_THRESHOLD};
-  const command_line::arg_descriptor<uint64_t>    arg_DIFFICULTY_TARGET  = {"DIFFICULTY_TARGET", "uint64_t", CryptoNote::parameters::DIFFICULTY_TARGET};
-  const command_line::arg_descriptor<uint32_t>    arg_CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW  = {"CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW", "uint32_t", CryptoNote::parameters::CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW};
-  const command_line::arg_descriptor<size_t>      arg_MAX_BLOCK_SIZE_INITIAL  = {"MAX_BLOCK_SIZE_INITIAL", "size_t", CryptoNote::parameters::MAX_BLOCK_SIZE_INITIAL};
-  const command_line::arg_descriptor<uint64_t>    arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY  = {"EXPECTED_NUMBER_OF_BLOCKS_PER_DAY", "uint64_t"};
-  const command_line::arg_descriptor<uint32_t>    arg_UPGRADE_HEIGHT_V2  = {"UPGRADE_HEIGHT_V2", "uint32_t", 0};
-  const command_line::arg_descriptor<uint32_t>    arg_UPGRADE_HEIGHT_V3  = {"UPGRADE_HEIGHT_V3", "uint32_t", 0};
-  const command_line::arg_descriptor<uint32_t>    arg_KEY_IMAGE_CHECKING_BLOCK_INDEX  = {"KEY_IMAGE_CHECKING_BLOCK_INDEX", "uint32_t", 0};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_WINDOW_V1  = {"DIFFICULTY_WINDOW_V1", "size_t", 0};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_WINDOW_V2  = {"DIFFICULTY_WINDOW_V2", "size_t", 0};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_LAG_V1  = {"DIFFICULTY_LAG_V1", "size_t", CryptoNote::parameters::DIFFICULTY_LAG};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_LAG_V2  = {"DIFFICULTY_LAG_V2", "size_t", CryptoNote::parameters::DIFFICULTY_LAG};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_CUT_V1  = {"DIFFICULTY_CUT_V1", "size_t", CryptoNote::parameters::DIFFICULTY_CUT};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_CUT_V2  = {"DIFFICULTY_CUT_V2", "size_t", CryptoNote::parameters::DIFFICULTY_CUT};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_WINDOW  = {"DIFFICULTY_WINDOW", "size_t", 0};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_CUT  = {"DIFFICULTY_CUT", "size_t", CryptoNote::parameters::DIFFICULTY_CUT};
-  const command_line::arg_descriptor<size_t>      arg_DIFFICULTY_LAG  = {"DIFFICULTY_LAG", "size_t", CryptoNote::parameters::DIFFICULTY_LAG};
-  const command_line::arg_descriptor<std::string> arg_rpc_bind_port = {"rpc-bind-port", "", std::to_string(RPC_DEFAULT_PORT)};
-  const command_line::arg_descriptor<uint64_t> arg_MAX_TRANSACTION_SIZE_LIMIT  = {"MAX_TRANSACTION_SIZE_LIMIT", "Max transaction limit size", 0};  
-  const command_line::arg_descriptor<uint16_t> arg_MIN_MIXIN  = {"MIN_MIXIN", "Minimum mixin count", false};  
-  const command_line::arg_descriptor<uint8_t> arg_MANDATORY_MIXIN_BLOCK_VERSION  = {"MANDATORY_MIXIN_BLOCK_VERSION", "Make mixin mandatory after block with major version X", false};  
-  const command_line::arg_descriptor<uint32_t> arg_MANDATORY_TRANSACTION  = {"MANDATORY_TRANSACTION", "Max transaction limit size", false};  
 const command_line::arg_descriptor<bool> arg_testnet = { "testnet", "Used to deploy test nets. The daemon must be launched with --testnet flag", false };
 const command_line::arg_descriptor< std::vector<std::string> > arg_command = { "command", "" };
 
@@ -140,12 +108,12 @@ inline std::string interpret_rpc_response(bool ok, const std::string& status) {
   std::string err;
   if (ok) {
     if (status == CORE_RPC_STATUS_BUSY) {
-      err = "daemon is busy. Please try later";
+      err = "the VGC daemon is busy. Please try later";
     } else if (status != CORE_RPC_STATUS_OK) {
       err = status;
     }
   } else {
-    err = "possible lost connection to daemon";
+    err = "possible lost connection to the VGC daemon";
   }
   return err;
 }
@@ -240,7 +208,7 @@ struct TransferCommand {
             if (CryptoNote::parsePaymentId(arg, paymentId)) {
               logger(ERROR, BRIGHT_RED) << "Invalid payment ID usage. Please, use -p <payment_id>. See help for details.";
             } else {
-              logger(ERROR, BRIGHT_RED) << "Wrong address: " << arg;
+              logger(ERROR, BRIGHT_RED) << "Wrong VGC address: " << arg;
             }
 
             return false;
@@ -261,7 +229,7 @@ struct TransferCommand {
       }
 
       if (dsts.empty()) {
-        logger(ERROR, BRIGHT_RED) << "At least one destination address is required";
+        logger(ERROR, BRIGHT_RED) << "At least one destination VGC address is required";
         return false;
       }
     } catch (const std::exception& e) {
@@ -321,11 +289,11 @@ std::string tryToOpenWalletOrLoadKeysOrThrow(LoggerRef& logger, std::unique_ptr<
   }
 
   if (walletExists) {
-    logger(INFO) << "Loading wallet...";
+    logger(INFO) << "Loading the VGC wallet...";
     std::ifstream walletFile;
     walletFile.open(walletFileName, std::ios_base::binary | std::ios_base::in);
     if (walletFile.fail()) {
-      throw std::runtime_error("error opening wallet file '" + walletFileName + "'");
+      throw std::runtime_error("Error opening the VGC wallet file '" + walletFileName + "'");
     }
 
     auto initError = initAndLoadWallet(*wallet, walletFile, password);
@@ -340,22 +308,22 @@ std::string tryToOpenWalletOrLoadKeysOrThrow(LoggerRef& logger, std::unique_ptr<
 
         initError = initAndLoadWallet(*wallet, ss, password);
         if (initError) {
-          throw std::runtime_error("failed to load wallet: " + initError.message());
+          throw std::runtime_error("Failed to load the VGC wallet: " + initError.message());
         }
 
-        logger(INFO) << "Storing wallet...";
+        logger(INFO) << "Storing the VGC wallet...";
 
         try {
           CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
         } catch (std::exception& e) {
-          logger(ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
-          throw std::runtime_error("error saving wallet file '" + walletFileName + "'");
+          logger(ERROR, BRIGHT_RED) << "Failed to store the VGC wallet: " << e.what();
+          throw std::runtime_error("Error saving the VGC wallet file '" + walletFileName + "'");
         }
 
         logger(INFO, BRIGHT_GREEN) << "Stored ok";
         return walletFileName;
       } else { // no keys, wallet error loading
-        throw std::runtime_error("can't load wallet file '" + walletFileName + "', check password");
+        throw std::runtime_error("can't load the VGC wallet file '" + walletFileName + "', check the password");
       }
     } else { //new wallet ok 
       return walletFileName;
@@ -374,22 +342,22 @@ std::string tryToOpenWalletOrLoadKeysOrThrow(LoggerRef& logger, std::unique_ptr<
 
     removeGuard.removeObserver();
     if (initError) {
-      throw std::runtime_error("failed to load wallet: " + initError.message());
+      throw std::runtime_error("Failed to load the VGC wallet: " + initError.message());
     }
 
-    logger(INFO) << "Storing wallet...";
+    logger(INFO) << "Storing the VGC wallet...";
 
     try {
       CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
     } catch(std::exception& e) {
-      logger(ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
-      throw std::runtime_error("error saving wallet file '" + walletFileName + "'");
+      logger(ERROR, BRIGHT_RED) << "Failed to store the VGC wallet: " << e.what();
+      throw std::runtime_error("Error saving the VGC wallet file '" + walletFileName + "'");
     }
 
     logger(INFO, BRIGHT_GREEN) << "Stored ok";
     return walletFileName;
   } else { //no wallet no keys
-    throw std::runtime_error("wallet file '" + walletFileName + "' is not found");
+    throw std::runtime_error("The VGC wallet file '" + walletFileName + "' is not found");
   }
 }
 
@@ -509,27 +477,22 @@ simple_wallet::simple_wallet(System::Dispatcher& dispatcher, const CryptoNote::C
   //m_consoleHandler.setHandler("start_mining", boost::bind(&simple_wallet::start_mining, this, _1), "start_mining [<number_of_threads>] - Start mining in daemon");
   //m_consoleHandler.setHandler("stop_mining", boost::bind(&simple_wallet::stop_mining, this, _1), "Stop mining in daemon");
   //m_consoleHandler.setHandler("refresh", boost::bind(&simple_wallet::refresh, this, _1), "Resynchronize transactions and balance");
-  m_consoleHandler.setHandler("export_keys", boost::bind(&simple_wallet::export_keys, this, _1), "Show the secret keys of the openned wallet");
-  m_consoleHandler.setHandler("balance", boost::bind(&simple_wallet::show_balance, this, _1), "Show current wallet balance");
+  m_consoleHandler.setHandler("export_keys", boost::bind(&simple_wallet::export_keys, this, _1), "Show the secret keys of the openned VGC wallet");
+  m_consoleHandler.setHandler("balance", boost::bind(&simple_wallet::show_balance, this, _1), "Show the current VGC wallet balance");
   m_consoleHandler.setHandler("incoming_transfers", boost::bind(&simple_wallet::show_incoming_transfers, this, _1), "Show incoming transfers");
-  //m_consoleHandler.setHandler("list_transfers", boost::bind(&simple_wallet::listTransfers, this, _1), "Show all known transfers");
-  /* 
-	 Changed By: James Chen - Lead VideoGamesCoin Developer (15 Jan 2019)
-	 Desc: Show all known transfers from a certain (optional) block height
-  */
-  m_consoleHandler.setHandler("list_transfers", boost::bind(&simple_wallet::listTransfers, this, _1), "list_transfers <height> - Show all known transfers from a certain (optional) block height");
+  m_consoleHandler.setHandler("list_transfers", boost::bind(&simple_wallet::listTransfers, this, _1), "Show all known transfers");
   m_consoleHandler.setHandler("payments", boost::bind(&simple_wallet::show_payments, this, _1), "payments <payment_id_1> [<payment_id_2> ... <payment_id_N>] - Show payments <payment_id_1>, ... <payment_id_N>");
-  m_consoleHandler.setHandler("bc_height", boost::bind(&simple_wallet::show_blockchain_height, this, _1), "Show blockchain height");
+  m_consoleHandler.setHandler("bc_height", boost::bind(&simple_wallet::show_blockchain_height, this, _1), "Show the VGC blockchain height");
   m_consoleHandler.setHandler("transfer", boost::bind(&simple_wallet::transfer, this, _1),
     "transfer <mixin_count> <addr_1> <amount_1> [<addr_2> <amount_2> ... <addr_N> <amount_N>] [-p payment_id] [-f fee]"
     " - Transfer <amount_1>,... <amount_N> to <address_1>,... <address_N>, respectively. "
     "<mixin_count> is the number of transactions yours is indistinguishable from (from 0 to maximum available)");
   m_consoleHandler.setHandler("set_log", boost::bind(&simple_wallet::set_log, this, _1), "set_log <level> - Change current log level, <level> is a number 0-4");
-  m_consoleHandler.setHandler("address", boost::bind(&simple_wallet::print_address, this, _1), "Show current wallet public address");
-  m_consoleHandler.setHandler("save", boost::bind(&simple_wallet::save, this, _1), "Save wallet synchronized data");
+  m_consoleHandler.setHandler("address", boost::bind(&simple_wallet::print_address, this, _1), "Show the current VGC wallet public address");
+  m_consoleHandler.setHandler("save", boost::bind(&simple_wallet::save, this, _1), "Save the VGC wallet synchronized data");
   m_consoleHandler.setHandler("reset", boost::bind(&simple_wallet::reset, this, _1), "Discard cache data and start synchronizing from the start");
   m_consoleHandler.setHandler("help", boost::bind(&simple_wallet::help, this, _1), "Show this help");
-  m_consoleHandler.setHandler("exit", boost::bind(&simple_wallet::exit, this, _1), "Close wallet");
+  m_consoleHandler.setHandler("exit", boost::bind(&simple_wallet::exit, this, _1), "Close the VGC wallet");
 }
 //----------------------------------------------------------------------------------------------------
 bool simple_wallet::set_log(const std::vector<std::string> &args) {
@@ -557,19 +520,31 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
   handle_command_line(vm);
 
   if (!m_daemon_address.empty() && (!m_daemon_host.empty() || 0 != m_daemon_port)) {
-    fail_msg_writer() << "you can't specify daemon host or port several times";
+    fail_msg_writer() << "you can't specify a VGC daemon host or port several times";
     return false;
   }
 
-bool key_import = true;
   if (m_generate_new.empty() && m_wallet_file_arg.empty()) {
-std::cout << "Nor 'generate-new-wallet' neither 'wallet-file' argument was specified.\nWhat do you want to do?\n[O]pen existing wallet, [G]enerate new wallet file, [I]mport wallet, [M]nemonic import or [E]xit.\n";
+    std::cout << "VideoGamesCoin CLI wallet\n\n"
+			 " ____ _________________________________     ____ ____________________________________ \n"
+			 "||G |||Generate a new VGC wallet file ||   ||I |||Create a new VGC wallet file from ||\n"
+			 "||__|||_______________________________||   ||__|||the Secret Spend and View keys    ||\n"
+			 "|/__\\|/_______________________________\\|   |/__\\||__________________________________||\n"
+			 " ____ _________________________                 |/__________________________________\\|\n"
+			 "||O |||Open a VGC wallet file || \n"
+			 "||__|||_______________________|| \n"
+			 "|/__\\|/_______________________\\| \n"
+			 " ____ _______  \n"
+			 "||E |||Exit || \n"
+			 "||__|||_____|| \n"
+			 "|/__\\|/_____\\| \n\n"
+			 "Selection: ";
     char c;
     do {
       std::string answer;
       std::getline(std::cin, answer);
       c = answer[0];
-if (!(c == 'O' || c == 'G' || c == 'E' || c == 'I' || c == 'M' || c == 'o' || c == 'g' || c == 'e' || c == 'i' || c == 'm')) {
+      if (!(c == 'O' || c == 'G' || c == 'E' || c == 'I' || c == 'o' || c == 'g' || c == 'e' || c == 'i')) {
         std::cout << "Unknown command: " << c <<std::endl;
       } else {
         break;
@@ -580,19 +555,15 @@ if (!(c == 'O' || c == 'G' || c == 'E' || c == 'I' || c == 'M' || c == 'o' || c 
       return false;
     }
 
-    std::cout << "Specify wallet file name (e.g., wallet.bin).\n";
+    std::cout << "Specify a VGC wallet file name (e.g., myVGCwallet.wallet).\n";
     std::string userInput;
     do {
-      std::cout << "Wallet file name: ";
+      std::cout << "VGC wallet file name: ";
       std::getline(std::cin, userInput);
       boost::algorithm::trim(userInput);
     } while (userInput.empty());
 
     if (c == 'i' || c == 'I') {
-  key_import = true;
-  m_import_new = userInput;
-} else if (c == 'm' || c == 'M') {
-  key_import = false;
       m_import_new = userInput;
     } else if (c == 'g' || c == 'G') {
       m_generate_new = userInput;
@@ -626,11 +597,11 @@ if (!(c == 'O' || c == 'G' || c == 'E' || c == 'I' || c == 'M' || c == 'o' || c 
   if (m_daemon_host.empty())
     m_daemon_host = "localhost";
   if (!m_daemon_port)
-    m_daemon_port = std::stoi(command_line::get_arg(vm, arg_rpc_bind_port));
+    m_daemon_port = RPC_DEFAULT_PORT;
   
   if (!m_daemon_address.empty()) {
     if (!parseUrlAddress(m_daemon_address, m_daemon_host, m_daemon_port)) {
-      fail_msg_writer() << "failed to parse daemon address: " << m_daemon_address;
+      fail_msg_writer() << "Failed to parse the VGC daemon address: " << m_daemon_address;
       return false;
     }
   } else {
@@ -641,7 +612,7 @@ if (!(c == 'O' || c == 'G' || c == 'E' || c == 'I' || c == 'M' || c == 'o' || c 
   if (command_line::has_arg(vm, arg_password)) {
     pwd_container.password(command_line::get_arg(vm, arg_password));
   } else if (!pwd_container.read_password()) {
-    fail_msg_writer() << "failed to read wallet password";
+    fail_msg_writer() << "Failed to read the VGC wallet password";
     return false;
   }
 
@@ -674,7 +645,7 @@ if (!(c == 'O' || c == 'G' || c == 'E' || c == 'I' || c == 'M' || c == 'o' || c 
     }
 
     if (!writeAddressFile(walletAddressFile, m_wallet->getAddress())) {
-      logger(WARNING, BRIGHT_RED) << "Couldn't write wallet address file: " + walletAddressFile;
+      logger(WARNING, BRIGHT_RED) << "Couldn't write the VGC wallet address file: " + walletAddressFile;
     }
   } else if (!m_import_new.empty()) {
     std::string walletAddressFile = prepareWalletAddressFilename(m_import_new);
@@ -686,11 +657,6 @@ if (!(c == 'O' || c == 'G' || c == 'E' || c == 'I' || c == 'M' || c == 'o' || c 
 
     std::string private_spend_key_string;
     std::string private_view_key_string;
-
-Crypto::SecretKey private_spend_key;
-Crypto::SecretKey private_view_key;
-
-if (key_import) {
     do {
       std::cout << "Private Spend Key: ";
       std::getline(std::cin, private_spend_key_string);
@@ -701,24 +667,7 @@ if (key_import) {
       std::getline(std::cin, private_view_key_string);
       boost::algorithm::trim(private_view_key_string);
     } while (private_view_key_string.empty());
-} else {
-  std::string mnemonic_phrase;
 
-  do {
-    std::cout << "Mnemonics Phrase (25 words): ";
-    std::getline(std::cin, mnemonic_phrase);
-    boost::algorithm::trim(mnemonic_phrase);
-    boost::algorithm::to_lower(mnemonic_phrase);
-  } while (!is_valid_mnemonic(mnemonic_phrase, private_spend_key));
-
-  /* This is not used, but is needed to be passed to the function, not sure how we can avoid this */
-  Crypto::PublicKey unused_dummy_variable;
-
-  AccountBase::generateViewFromSpend(private_spend_key, private_view_key, unused_dummy_variable);
-}
-
-/* We already have our keys if we import via mnemonic seed */
-if (key_import) {
     Crypto::Hash private_spend_key_hash;
     Crypto::Hash private_view_key_hash;
     size_t size;
@@ -728,9 +677,8 @@ if (key_import) {
     if (!Common::fromHex(private_view_key_string, &private_view_key_hash, sizeof(private_view_key_hash), size) || size != sizeof(private_spend_key_hash)) {
       return false;
     }
-      private_spend_key = *(struct Crypto::SecretKey *) &private_spend_key_hash;
-      private_view_key = *(struct Crypto::SecretKey *) &private_view_key_hash;
-    }
+    Crypto::SecretKey private_spend_key = *(struct Crypto::SecretKey *) &private_spend_key_hash;
+    Crypto::SecretKey private_view_key = *(struct Crypto::SecretKey *) &private_view_key_hash;
 
     if (!new_wallet(private_spend_key, private_view_key, walletFileName, pwd_container.password())) {
       logger(ERROR, BRIGHT_RED) << "account creation failed";
@@ -738,7 +686,7 @@ if (key_import) {
     }
 
     if (!writeAddressFile(walletAddressFile, m_wallet->getAddress())) {
-      logger(WARNING, BRIGHT_RED) << "Couldn't write wallet address file: " + walletAddressFile;
+      logger(WARNING, BRIGHT_RED) << "Couldn't write the VGC wallet address file: " + walletAddressFile;
     }
   } else {
     m_wallet.reset(new WalletLegacy(m_currency, *m_node));
@@ -749,109 +697,22 @@ if (key_import) {
     try {
       m_wallet_file = tryToOpenWalletOrLoadKeysOrThrow(logger, m_wallet, m_wallet_file_arg, pwd_container.password());
     } catch (const std::exception& e) {
-      fail_msg_writer() << "failed to load wallet: " << e.what();
+      fail_msg_writer() << "Failed to load the VGC wallet: " << e.what();
       return false;
     }
 
     m_wallet->addObserver(this);
     m_node->addObserver(static_cast<INodeObserver*>(this));
 
-    logger(INFO, BRIGHT_WHITE) << "Opened wallet: " << m_wallet->getAddress();
+    logger(INFO, BRIGHT_GREEN) << "\n\nOpened wallet: \n" << m_wallet->getAddress();
 
     success_msg_writer() <<
-      "**********************************************************************\n" <<
+      "\n**********************************************************************\n" <<
       "Use \"help\" command to see the list of available commands.\n" <<
       "**********************************************************************";
   }
 
   return true;
-}
-//----------------------------------------------------------------------------------------------------
-/* Be careful using this function. It does generate a mnemonic seed
-perfectly well from a private spend key, however, simplewallet previously
-generated a random spend and view key, which were unrelated. With this set of
-commits, this has been changed, to make the view key derived from the spend
-key. This is done by running keccak-256 on the input, and then using that as
-a seed to create a set of private and public keys, the spend private and public
-keys.
-
-With this implemented, users only need to save a private spend key, or the
-mnemonic seed, which is a nice way of representing the spend key. However,
-we don't want users with the old way of generating keys thinking they only need
-to keep their mnemonic seed, because this will only generate their private
-spend key, and NOT their private view key - and they won't be able to restore
-their funds.
-*/
-std::string simple_wallet::generate_mnemonic(Crypto::SecretKey &private_spend_key) {
-
-  std::string mnemonic_str;
-
-  if (!crypto::ElectrumWords::bytes_to_words(private_spend_key, mnemonic_str, "English")) {
-      logger(ERROR, BRIGHT_RED) << "Cant create the mnemonic for the private spend key!";
-  }
-
-  return mnemonic_str;
-}
-//----------------------------------------------------------------------------------------------------
-void simple_wallet::log_incorrect_words(std::vector<std::string> words) {
-  Language::Base *language = Language::Singleton<Language::English>::instance();
-  const std::vector<std::string> &dictionary = language->get_word_list();
-
-  for (auto i : words) {
-    if (std::find(dictionary.begin(), dictionary.end(), i) == dictionary.end()) {
-      logger(ERROR, BRIGHT_RED) << i << " is not in the english word list!";
-    }
-  }
-}
-//----------------------------------------------------------------------------------------------------
-bool simple_wallet::is_valid_mnemonic(std::string &mnemonic_phrase, Crypto::SecretKey &private_spend_key) {
-
-  /* Uncommenting these will allow importing of different languages, exporting
-     in different languages however has not been added, as it will require
-     changing the export_keys command to take an argument to specify what
-     language the seed should be exported in. For now, multilanguage support
-     has been disabled as there are a couple of issues - we can't print out
-     what words aren't present in the dictionary if we don't know what
-     dictionary they are using, and it's a lot more friendly to work that
-     out automatically rather than asking, and secondly, it is possible that
-     dictionaries of other words can overlap enough to allow an esperanto
-     seed for example to be imported as an english seed */
-
-  //static std::string languages[] = {"English", "Nederlands", "Français", "Português", "Italiano", "Deutsch", "русский язык", "简体中文 (中国)", "Esperanto", "Lojban"};
-  static std::string languages[] = {"English"};
-  
-  //static const int num_of_languages = 10;
-  static const int num_of_languages = 1;
-
-  static const int mnemonic_phrase_length = 25;
-
-  std::vector<std::string> words;
-
-  words = boost::split(words, mnemonic_phrase, ::isspace);
-
-  if (words.size() != mnemonic_phrase_length) {
-    logger(ERROR, BRIGHT_RED) << "Invalid mnemonic phrase!";
-    logger(ERROR, BRIGHT_RED) << "Seed phrase is not 25 words! Please try again.";
-    log_incorrect_words(words);
-    return false;
-  }
-
-  /* Check every language for our phrase so the user doesn't have to specify
-     it, this shouldn't be an issue as long as one language doesn't have enough
-     of another languages words, might need some testing */
-  for (int i = 0; i < num_of_languages; i++) {
-    if (crypto::ElectrumWords::words_to_bytes(mnemonic_phrase, private_spend_key, languages[i])) {
-      return true;
-    }
-  }
-
-  /* The issue with this is if we try and automagically determine what language
-     the seed phrase is in, then we can't log words which aren't in the x
-     dictionary, we will have to take an argument to know what language they
-     are in, but this is less user friendly. */
-  logger(ERROR, BRIGHT_RED) << "Invalid mnemonic phrase!";
-  log_incorrect_words(words);
-  return false;
 }
 //----------------------------------------------------------------------------------------------------
 bool simple_wallet::deinit() {
@@ -891,36 +752,38 @@ bool simple_wallet::new_wallet(const std::string &wallet_file, const std::string
     auto initError = f_initError.get();
     m_initResultPromise.reset(nullptr);
     if (initError) {
-      fail_msg_writer() << "failed to generate new wallet: " << initError.message();
+      fail_msg_writer() << "Failed to generate a new VGC wallet: " << initError.message();
       return false;
     }
 
     try {
       CryptoNote::WalletHelper::storeWallet(*m_wallet, m_wallet_file);
     } catch (std::exception& e) {
-      fail_msg_writer() << "failed to save new wallet: " << e.what();
+      fail_msg_writer() << "Failed to save the new VGC wallet: " << e.what();
       throw;
     }
 
     AccountKeys keys;
     m_wallet->getAccountKeys(keys);
 
-    logger(INFO, BRIGHT_WHITE) <<
-      "Generated new wallet: " << m_wallet->getAddress() << std::endl <<
-      "view key: " << Common::podToHex(keys.viewSecretKey);
+    logger(INFO, BRIGHT_GREEN) <<
+      "\n\nGenerated a new VGC wallet: \n" << m_wallet->getAddress() << "\n\n" <<
+      "Secret view key: \n" << Common::podToHex(keys.viewSecretKey) << "\n\n\n";
   }
   catch (const std::exception& e) {
-    fail_msg_writer() << "failed to generate new wallet: " << e.what();
+    fail_msg_writer() << "Failed to generate a new VGC wallet: " << e.what();
     return false;
   }
 
   success_msg_writer() <<
-    "**********************************************************************\n" <<
+    "\n**********************************************************************\n" <<
     "Your wallet has been generated.\n" <<
     "Use \"help\" command to see the list of available commands.\n" <<
     "Always use \"exit\" command when closing simplewallet to save\n" <<
     "current session's state. Otherwise, you will possibly need to synchronize \n" <<
     "your wallet again. Your wallet key is NOT under risk anyway.\n" <<
+    "Make sure to ALWAYS SAVE your Secret Spend and View keys!\n" <<
+    "Use \"export_keys\" command to get your secret keys.\n" <<
     "**********************************************************************";
   return true;
 }
@@ -945,25 +808,25 @@ bool simple_wallet::new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey 
     auto initError = f_initError.get();
     m_initResultPromise.reset(nullptr);
     if (initError) {
-      fail_msg_writer() << "failed to generate new wallet: " << initError.message();
+      fail_msg_writer() << "Failed to generate a new VGC wallet: " << initError.message();
       return false;
     }
 
     try {
       CryptoNote::WalletHelper::storeWallet(*m_wallet, m_wallet_file);
     } catch (std::exception& e) {
-      fail_msg_writer() << "failed to save new wallet: " << e.what();
+      fail_msg_writer() << "Failed to save the new VGC wallet: " << e.what();
       throw;
     }
 
     AccountKeys keys;
     m_wallet->getAccountKeys(keys);
 
-    logger(INFO, BRIGHT_WHITE) <<
-      "Imported wallet: " << m_wallet->getAddress() << std::endl;
+    logger(INFO, BRIGHT_GREEN) <<
+      "\n\nImported the VGC wallet: \n" << m_wallet->getAddress() << std::endl;
   }
   catch (const std::exception& e) {
-    fail_msg_writer() << "failed to import wallet: " << e.what();
+    fail_msg_writer() << "Failed to import the VGC wallet: " << e.what();
     return false;
   }
 
@@ -974,6 +837,8 @@ bool simple_wallet::new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey 
     "Always use \"exit\" command when closing simplewallet to save\n" <<
     "current session's state. Otherwise, you will possibly need to synchronize \n" <<
     "your wallet again. Your wallet key is NOT under risk anyway.\n" <<
+    "Make sure to ALWAYS SAVE your Secret Spend and View keys!\n" <<
+    "Use \"export_keys\" command to get your secret keys.\n" <<
     "**********************************************************************";
   return true;
 }
@@ -1058,7 +923,7 @@ bool simple_wallet::start_mining(const std::vector<std::string>& args) {
 
     std::string err = interpret_rpc_response(true, res.status);
     if (err.empty())
-      success_msg_writer() << "Mining started in daemon";
+      success_msg_writer() << "Mining started in the VGC daemon";
     else
       fail_msg_writer() << "mining has NOT been started: " << err;
 
@@ -1082,7 +947,7 @@ bool simple_wallet::stop_mining(const std::vector<std::string>& args)
     invokeJsonCommand(httpClient, "/stop_mining", req, res);
     std::string err = interpret_rpc_response(true, res.status);
     if (err.empty())
-      success_msg_writer() << "Mining stopped in daemon";
+      success_msg_writer() << "Mining stopped in the VGC daemon";
     else
       fail_msg_writer() << "mining has NOT been stopped: " << err;
   } catch (const ConnectException&) {
@@ -1102,7 +967,7 @@ void simple_wallet::initCompleted(std::error_code result) {
 //----------------------------------------------------------------------------------------------------
 void simple_wallet::connectionStatusUpdated(bool connected) {
   if (connected) {
-    logger(INFO, GREEN) << "Wallet connected to daemon.";
+    logger(INFO, GREEN) << "Wallet connected to the VGC daemon.";
   } else {
     printConnectionError();
   }
@@ -1122,11 +987,11 @@ void simple_wallet::externalTransactionCreated(CryptoNote::TransactionId transac
   if (txInfo.totalAmount >= 0) {
     logger(INFO, GREEN) <<
       logPrefix.str() << " transaction " << Common::podToHex(txInfo.hash) <<
-      ", received " << m_currency.formatAmount(txInfo.totalAmount);
+      ", received " << m_currency.formatAmount(txInfo.totalAmount) << " VGC";
   } else {
     logger(INFO, MAGENTA) <<
       logPrefix.str() << " transaction " << Common::podToHex(txInfo.hash) <<
-      ", spent " << m_currency.formatAmount(static_cast<uint64_t>(-txInfo.totalAmount));
+      ", spent " << m_currency.formatAmount(static_cast<uint64_t>(-txInfo.totalAmount)) << " VGC";
   }
 
   if (txInfo.blockHeight == WALLET_LEGACY_UNCONFIRMED_TRANSACTION_HEIGHT) {
@@ -1152,29 +1017,15 @@ void simple_wallet::synchronizationProgressUpdated(uint32_t current, uint32_t to
 bool simple_wallet::export_keys(const std::vector<std::string>& args/* = std::vector<std::string>()*/) {
   AccountKeys keys;
   m_wallet->getAccountKeys(keys);
-  success_msg_writer(true) << "Spend secret key: " << Common::podToHex(keys.spendSecretKey);
-  success_msg_writer(true) << "View secret key: " <<  Common::podToHex(keys.viewSecretKey);
-  Crypto::PublicKey unused_dummy_variable;
-  Crypto::SecretKey deterministic_private_view_key;
-
-  AccountBase::generateViewFromSpend(keys.spendSecretKey, deterministic_private_view_key, unused_dummy_variable);
-
-  bool deterministic_private_keys = deterministic_private_view_key == keys.viewSecretKey;
-
-/* Only output the mnemonic seed if it's valid for this wallet - the old
-   wallet code generated random spend and view keys so we can't create a 
-   mnemonic seed */
-  if (deterministic_private_keys) {
-    std::cout << "Mnemonic seed: " << generate_mnemonic(keys.spendSecretKey) << std::endl;
-  }
-
+  success_msg_writer(true) << "Secret Spend key: " << Common::podToHex(keys.spendSecretKey);
+  success_msg_writer(true) << "Secret View key:  " <<  Common::podToHex(keys.viewSecretKey);
 
   return true;
 }
 
 bool simple_wallet::show_balance(const std::vector<std::string>& args/* = std::vector<std::string>()*/) {
-  success_msg_writer() << "available balance: " << m_currency.formatAmount(m_wallet->actualBalance()) <<
-    ", locked amount: " << m_currency.formatAmount(m_wallet->pendingBalance());
+  success_msg_writer() << "\n\nAvailable balance: " << m_currency.formatAmount(m_wallet->actualBalance()) << " VGC\n" <<
+    "Locked amount: " << m_currency.formatAmount(m_wallet->pendingBalance()) << " VGC\n";
 
   return true;
 }
@@ -1198,27 +1049,10 @@ bool simple_wallet::show_incoming_transfers(const std::vector<std::string>& args
 
 bool simple_wallet::listTransfers(const std::vector<std::string>& args) {
   bool haveTransfers = false;
-  
-  bool haveBlockHeight = false;
-  std::string blockHeightString = ""; 
-  int blockHeight;
-  WalletLegacyTransaction txInfo;
-
-
-  /* get block height from arguments */
-  if (args.empty()) 
-  {
-    haveBlockHeight = false;
-  } else {
-    blockHeightString = args[0];
-    haveBlockHeight = true;
-    blockHeight = atoi(blockHeightString.c_str());
-  }
-
 
   size_t transactionsCount = m_wallet->getTransactionCount();
   for (size_t trantransactionNumber = 0; trantransactionNumber < transactionsCount; ++trantransactionNumber) {
-    //WalletLegacyTransaction txInfo;
+    WalletLegacyTransaction txInfo;
     m_wallet->getTransaction(trantransactionNumber, txInfo);
     if (txInfo.state != WalletLegacyTransactionState::Active || txInfo.blockHeight == WALLET_LEGACY_UNCONFIRMED_TRANSACTION_HEIGHT) {
       continue;
@@ -1229,17 +1063,7 @@ bool simple_wallet::listTransfers(const std::vector<std::string>& args) {
       haveTransfers = true;
     }
 
-    //printListTransfersItem(logger, txInfo, *m_wallet, m_currency);
-	if (haveBlockHeight == false) {
-      printListTransfersItem(logger, txInfo, *m_wallet, m_currency);
-    } else {
-      if (txInfo.blockHeight >= blockHeight) {
-        printListTransfersItem(logger, txInfo, *m_wallet, m_currency);
-
-      }
-
-    }
-
+    printListTransfersItem(logger, txInfo, *m_wallet, m_currency);
   }
 
   if (!haveTransfers) {
@@ -1249,10 +1073,9 @@ bool simple_wallet::listTransfers(const std::vector<std::string>& args) {
   return true;
 }
 
-
 bool simple_wallet::show_payments(const std::vector<std::string> &args) {
   if (args.empty()) {
-    fail_msg_writer() << "expected at least one payment ID";
+    fail_msg_writer() << "Expected at least one payment ID";
     return true;
   }
 
@@ -1289,7 +1112,7 @@ bool simple_wallet::show_payments(const std::vector<std::string> &args) {
         continue;
       }
     } else {
-      fail_msg_writer() << "payment ID has invalid format: \"" << arg << "\", expected 64-character string";
+      fail_msg_writer() << "Payment ID has invalid format: \"" << arg << "\", expected 64-character string";
     }
   }
 
@@ -1301,7 +1124,7 @@ bool simple_wallet::show_blockchain_height(const std::vector<std::string>& args)
     uint64_t bc_height = m_node->getLastLocalBlockHeight();
     success_msg_writer() << bc_height;
   } catch (std::exception &e) {
-    fail_msg_writer() << "failed to get blockchain height: " << e.what();
+    fail_msg_writer() << "Failed to get VGC blockchain height: " << e.what();
   }
 
   return true;
@@ -1322,7 +1145,7 @@ bool simple_wallet::transfer(const std::vector<std::string> &args) {
 
     CryptoNote::TransactionId tx = m_wallet->sendTransaction(cmd.dsts, cmd.fee, extraString, cmd.fake_outs_count, 0);
     if (tx == WALLET_LEGACY_INVALID_TRANSACTION_ID) {
-      fail_msg_writer() << "Can't send money";
+      fail_msg_writer() << "Can't send VGC";
       return true;
     }
 
@@ -1336,7 +1159,7 @@ bool simple_wallet::transfer(const std::vector<std::string> &args) {
 
     CryptoNote::WalletLegacyTransaction txInfo;
     m_wallet->getTransaction(tx, txInfo);
-    success_msg_writer(true) << "Money successfully sent, transaction " << Common::podToHex(txInfo.hash);
+    success_msg_writer(true) << "VGC successfully sent, transaction " << Common::podToHex(txInfo.hash);
 
     try {
       CryptoNote::WalletHelper::storeWallet(*m_wallet, m_wallet_file);
@@ -1384,7 +1207,7 @@ bool simple_wallet::process_command(const std::vector<std::string> &args) {
 }
 
 void simple_wallet::printConnectionError() const {
-  fail_msg_writer() << "wallet failed to connect to daemon (" << m_daemon_address << ").";
+  fail_msg_writer() << "The wallet failed to connect to the VGC daemon (" << m_daemon_address << ").";
 }
 
 
@@ -1408,39 +1231,6 @@ int main(int argc, char* argv[]) {
   command_line::add_arg(desc_params, arg_log_level);
   command_line::add_arg(desc_params, arg_testnet);
   Tools::wallet_rpc_server::init_options(desc_params);
-  command_line::add_arg(desc_params, arg_MANDATORY_TRANSACTION);
-  command_line::add_arg(desc_params, arg_MIN_MIXIN);
-  command_line::add_arg(desc_params, arg_MANDATORY_MIXIN_BLOCK_VERSION);
-  command_line::add_arg(desc_params, arg_MAX_TRANSACTION_SIZE_LIMIT);
-  command_line::add_arg(desc_params, command_line::arg_data_dir, Tools::getDefaultDataDirectory());
-  command_line::add_arg(desc_params, arg_config_file);
-  command_line::add_arg(desc_params, arg_GENESIS_COINBASE_TX_HEX);
-  command_line::add_arg(desc_params, arg_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX);
-  command_line::add_arg(desc_params, arg_MONEY_SUPPLY);
-  command_line::add_arg(desc_params, arg_EMISSION_SPEED_FACTOR);
-  command_line::add_arg(desc_params, arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE);
-  command_line::add_arg(desc_params, arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1);
-  command_line::add_arg(desc_params, arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2);
-  command_line::add_arg(desc_params, arg_CRYPTONOTE_DISPLAY_DECIMAL_POINT);
-  command_line::add_arg(desc_params, arg_MINIMUM_FEE);
-  command_line::add_arg(desc_params, arg_DEFAULT_DUST_THRESHOLD);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_TARGET);
-  command_line::add_arg(desc_params, arg_CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW);
-  command_line::add_arg(desc_params, arg_MAX_BLOCK_SIZE_INITIAL);
-  command_line::add_arg(desc_params, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY);
-  command_line::add_arg(desc_params, arg_UPGRADE_HEIGHT_V2);
-  command_line::add_arg(desc_params, arg_UPGRADE_HEIGHT_V3);
-  command_line::add_arg(desc_params, arg_KEY_IMAGE_CHECKING_BLOCK_INDEX);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_WINDOW);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_CUT);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_WINDOW_V1);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_WINDOW_V2);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_LAG_V1);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_LAG_V2);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_CUT_V1);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_CUT_V2);
-  command_line::add_arg(desc_params, arg_DIFFICULTY_LAG);
-  command_line::add_arg(desc_params, arg_rpc_bind_port);
   command_line::add_arg(desc_params, arg_SYNC_FROM_ZERO);
   command_line::add_arg(desc_params, arg_DEFAULT_FEE);
 
@@ -1474,29 +1264,6 @@ int main(int argc, char* argv[]) {
 
     auto parser = po::command_line_parser(argc, argv).options(desc_params).positional(positional_options);
     po::store(parser.run(), vm);
-    std::string data_dir = command_line::get_arg(vm, command_line::arg_data_dir);
-    std::string config = command_line::get_arg(vm, arg_config_file);
-    boost::filesystem::path data_dir_path(data_dir);
-    boost::filesystem::path config_path(config);
-    if (!config_path.has_parent_path())
-    {
-      config_path = data_dir_path / config_path;
-    }
-    boost::system::error_code ec;
-    if (boost::filesystem::exists(config_path, ec))
-    {
-      std::cout << "Success: Configuration file openned" << std::endl;
-      po::store(po::parse_config_file<char>(config_path.string<std::string>().c_str(), desc_params, true), vm);
-    }
-    else
-    {
-      std::cout << "Configuration error: Cannot open configuration file" << std::endl;
-      std::cout << "" << std::endl;
-      std::cout << "Usage:" << std::endl;
-      std::cout << "Windows:   simplewallet.exe --config-file configs/dashcoin.conf" << std::endl;
-      std::cout << "Linux/Mac:   ./simplewallet --config-file configs/dashcoin.conf" << std::endl;
-      return false;
-    }
     po::notify(vm);
     return true;
   });
@@ -1515,93 +1282,23 @@ int main(int argc, char* argv[]) {
 
   logger(INFO, BRIGHT_WHITE) << CRYPTONOTE_NAME << " wallet v" << PROJECT_VERSION_LONG;
 
-  CryptoNote::CurrencyBuilder currencyBuilder(logManager);
-  currencyBuilder.genesisCoinbaseTxHex(command_line::get_arg(vm, arg_GENESIS_COINBASE_TX_HEX));
-  currencyBuilder.publicAddressBase58Prefix(command_line::get_arg(vm, arg_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX));
-  currencyBuilder.moneySupply(command_line::get_arg(vm, arg_MONEY_SUPPLY));
-  currencyBuilder.emissionSpeedFactor(command_line::get_arg(vm, arg_EMISSION_SPEED_FACTOR));
-  currencyBuilder.blockGrantedFullRewardZone(command_line::get_arg(vm, arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE));
-  currencyBuilder.blockGrantedFullRewardZoneV1(command_line::get_arg(vm, arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1));
-  currencyBuilder.blockGrantedFullRewardZoneV2(command_line::get_arg(vm, arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2));
-  currencyBuilder.numberOfDecimalPlaces(command_line::get_arg(vm, arg_CRYPTONOTE_DISPLAY_DECIMAL_POINT));
-  currencyBuilder.mininumFee(command_line::get_arg(vm, arg_MINIMUM_FEE));
-  currencyBuilder.defaultDustThreshold(command_line::get_arg(vm, arg_DEFAULT_DUST_THRESHOLD));
-  currencyBuilder.difficultyTarget(command_line::get_arg(vm, arg_DIFFICULTY_TARGET));
-  currencyBuilder.minedMoneyUnlockWindow(command_line::get_arg(vm, arg_CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW));
-  currencyBuilder.maxBlockSizeInitial(command_line::get_arg(vm, arg_MAX_BLOCK_SIZE_INITIAL));
-  if (command_line::has_arg(vm, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY) && command_line::get_arg(vm, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY) != 0)
-  {
-    currencyBuilder.expectedNumberOfBlocksPerDay(command_line::get_arg(vm, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY));
-    currencyBuilder.difficultyWindow(command_line::get_arg(vm, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY));
-    currencyBuilder.difficultyWindowV1(command_line::get_arg(vm, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY));
-    currencyBuilder.difficultyWindowV2(command_line::get_arg(vm, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY));
-    currencyBuilder.upgradeVotingWindow(command_line::get_arg(vm, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY));
-    currencyBuilder.upgradeWindow(command_line::get_arg(vm, arg_EXPECTED_NUMBER_OF_BLOCKS_PER_DAY));
-  } else {
-    currencyBuilder.expectedNumberOfBlocksPerDay(24 * 60 * 60 / command_line::get_arg(vm, arg_DIFFICULTY_TARGET));
-    currencyBuilder.difficultyWindow(24 * 60 * 60 / command_line::get_arg(vm, arg_DIFFICULTY_TARGET));
-    currencyBuilder.difficultyWindowV1(24 * 60 * 60 / command_line::get_arg(vm, arg_DIFFICULTY_TARGET));
-    currencyBuilder.difficultyWindowV2(24 * 60 * 60 / command_line::get_arg(vm, arg_DIFFICULTY_TARGET));
-  }
-  currencyBuilder.maxBlockSizeGrowthSpeedDenominator(365 * 24 * 60 * 60 / command_line::get_arg(vm, arg_DIFFICULTY_TARGET));
-  currencyBuilder.lockedTxAllowedDeltaSeconds(command_line::get_arg(vm, arg_DIFFICULTY_TARGET) * CryptoNote::parameters::CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS);  
-  if (command_line::has_arg(vm, arg_UPGRADE_HEIGHT_V2) && command_line::get_arg(vm, arg_UPGRADE_HEIGHT_V2) != 0)
-  {
-    currencyBuilder.upgradeHeightV2(command_line::get_arg(vm, arg_UPGRADE_HEIGHT_V2));
-  }
-  if (command_line::has_arg(vm, arg_UPGRADE_HEIGHT_V3) && command_line::get_arg(vm, arg_UPGRADE_HEIGHT_V3) != 0)
-  {
-    currencyBuilder.upgradeHeightV3(command_line::get_arg(vm, arg_UPGRADE_HEIGHT_V3));
-  }
-  if (command_line::has_arg(vm, arg_KEY_IMAGE_CHECKING_BLOCK_INDEX) && command_line::get_arg(vm, arg_KEY_IMAGE_CHECKING_BLOCK_INDEX) != 0)
-  {
-    currencyBuilder.keyImageCheckingBlockIndex(command_line::get_arg(vm, arg_KEY_IMAGE_CHECKING_BLOCK_INDEX));
-  }
-  if (command_line::has_arg(vm, arg_DIFFICULTY_WINDOW) && command_line::get_arg(vm, arg_DIFFICULTY_WINDOW) != 0)
-  {
-    currencyBuilder.difficultyWindow(command_line::get_arg(vm, arg_DIFFICULTY_WINDOW));
-  }
-  currencyBuilder.difficultyLag(command_line::get_arg(vm, arg_DIFFICULTY_LAG));
-  currencyBuilder.difficultyCut(command_line::get_arg(vm, arg_DIFFICULTY_CUT));
-  currencyBuilder.difficultyWindowV1(command_line::get_arg(vm, arg_DIFFICULTY_WINDOW_V1));
-  currencyBuilder.difficultyWindowV2(command_line::get_arg(vm, arg_DIFFICULTY_WINDOW_V2));
-  currencyBuilder.difficultyLagV1(command_line::get_arg(vm, arg_DIFFICULTY_LAG_V1));
-  currencyBuilder.difficultyLagV2(command_line::get_arg(vm, arg_DIFFICULTY_LAG_V2));
-  currencyBuilder.difficultyCutV1(command_line::get_arg(vm, arg_DIFFICULTY_CUT_V1));
-  currencyBuilder.difficultyCutV2(command_line::get_arg(vm, arg_DIFFICULTY_CUT_V2));
-if (command_line::get_arg(vm, arg_MAX_TRANSACTION_SIZE_LIMIT) == 0) {
-  uint64_t maxTxSizeLimit = command_line::get_arg(vm, arg_CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE) * 110 / 100 - CryptoNote::parameters::CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
-  currencyBuilder.maxTransactionSizeLimit(maxTxSizeLimit);
-  currencyBuilder.fusionTxMaxSize(maxTxSizeLimit * 30 / 100);
-} else {
-  currencyBuilder.maxTransactionSizeLimit(command_line::get_arg(vm, arg_MAX_TRANSACTION_SIZE_LIMIT));
-  currencyBuilder.fusionTxMaxSize(command_line::get_arg(vm, arg_MAX_TRANSACTION_SIZE_LIMIT) * 30 / 100);
-}
-currencyBuilder.minMixin(command_line::get_arg(vm, arg_MIN_MIXIN));
-//uint8_t recognized as char
-if (command_line::get_arg(vm, arg_MANDATORY_MIXIN_BLOCK_VERSION) == 0) {
-  currencyBuilder.mandatoryMixinBlockVersion(command_line::get_arg(vm, arg_MANDATORY_MIXIN_BLOCK_VERSION));
-} else {
-  currencyBuilder.mandatoryMixinBlockVersion(command_line::get_arg(vm, arg_MANDATORY_MIXIN_BLOCK_VERSION) - '0');
-}
-currencyBuilder.mandatoryTransaction(command_line::get_arg(vm, arg_MANDATORY_TRANSACTION));
-currencyBuilder.testnet(command_line::get_arg(vm, arg_testnet));
-CryptoNote::Currency currency = currencyBuilder.currency();
+  CryptoNote::Currency currency = CryptoNote::CurrencyBuilder(logManager).
+    testnet(command_line::get_arg(vm, arg_testnet)).currency();
 
   if (command_line::has_arg(vm, Tools::wallet_rpc_server::arg_rpc_bind_port)) {
     //runs wallet with rpc interface
     if (!command_line::has_arg(vm, arg_wallet_file)) {
-      logger(ERROR, BRIGHT_RED) << "Wallet file not set.";
+      logger(ERROR, BRIGHT_RED) << "VGC wallet file not set.";
       return 1;
     }
 
     if (!command_line::has_arg(vm, arg_daemon_address)) {
-      logger(ERROR, BRIGHT_RED) << "Daemon address not set.";
+      logger(ERROR, BRIGHT_RED) << "VGC daemon address not set.";
       return 1;
     }
 
     if (!command_line::has_arg(vm, arg_password)) {
-      logger(ERROR, BRIGHT_RED) << "Wallet password not set.";
+      logger(ERROR, BRIGHT_RED) << "VGC wallet password not set.";
       return 1;
     }
 
@@ -1613,11 +1310,11 @@ CryptoNote::Currency currency = currencyBuilder.currency();
     if (daemon_host.empty())
       daemon_host = "localhost";
     if (!daemon_port)
-      daemon_port = std::stoi(command_line::get_arg(vm, arg_rpc_bind_port));
+      daemon_port = RPC_DEFAULT_PORT;
 
     if (!daemon_address.empty()) {
       if (!parseUrlAddress(daemon_address, daemon_host, daemon_port)) {
-        logger(ERROR, BRIGHT_RED) << "failed to parse daemon address: " << daemon_address;
+        logger(ERROR, BRIGHT_RED) << "Failed to parse the VGC daemon address: " << daemon_address;
         return 1;
       }
     }
@@ -1639,19 +1336,19 @@ CryptoNote::Currency currency = currencyBuilder.currency();
     try  {
       walletFileName = ::tryToOpenWalletOrLoadKeysOrThrow(logger, wallet, wallet_file, wallet_password);
 
-      logger(INFO) << "available balance: " << currency.formatAmount(wallet->actualBalance()) <<
-      ", locked amount: " << currency.formatAmount(wallet->pendingBalance());
+      logger(INFO) << "\n\nAvailable balance: " << currency.formatAmount(wallet->actualBalance()) << " VGC\n" <<
+      "Locked amount: " << currency.formatAmount(wallet->pendingBalance()) << " VGC\n";
 
       logger(INFO, BRIGHT_GREEN) << "Loaded ok";
     } catch (const std::exception& e)  {
-      logger(ERROR, BRIGHT_RED) << "Wallet initialize failed: " << e.what();
+      logger(ERROR, BRIGHT_RED) << "The VGC wallet initialize failed: " << e.what();
       return 1;
     }
 
     Tools::wallet_rpc_server wrpc(dispatcher, logManager, *wallet, *node, currency, walletFileName);
 
     if (!wrpc.init(vm)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to initialize wallet rpc server";
+      logger(ERROR, BRIGHT_RED) << "Failed to initialize the VGC wallet rpc server";
       return 1;
     }
 
@@ -1659,16 +1356,16 @@ CryptoNote::Currency currency = currencyBuilder.currency();
       wrpc.send_stop_signal();
     });
 
-    logger(INFO) << "Starting wallet rpc server";
+    logger(INFO) << "Starting the VGC wallet rpc server";
     wrpc.run();
-    logger(INFO) << "Stopped wallet rpc server";
+    logger(INFO) << "Stopped the VGC wallet rpc server";
     
     try {
-      logger(INFO) << "Storing wallet...";
+      logger(INFO) << "Storing the VGC wallet...";
       CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
       logger(INFO, BRIGHT_GREEN) << "Stored ok";
     } catch (const std::exception& e) {
-      logger(ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
+      logger(ERROR, BRIGHT_RED) << "Failed to store the VGC wallet: " << e.what();
       return 1;
     }
   } else {
@@ -1676,7 +1373,7 @@ CryptoNote::Currency currency = currencyBuilder.currency();
     CryptoNote::simple_wallet wal(dispatcher, currency, logManager);
     
     if (!wal.init(vm)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to initialize wallet"; 
+      logger(ERROR, BRIGHT_RED) << "Failed to initialize the VGC wallet"; 
       return 1; 
     }
 
@@ -1691,9 +1388,9 @@ CryptoNote::Currency currency = currencyBuilder.currency();
     wal.run();
 
     if (!wal.deinit()) {
-      logger(ERROR, BRIGHT_RED) << "Failed to close wallet";
+      logger(ERROR, BRIGHT_RED) << "Failed to close the VGC wallet";
     } else {
-      logger(INFO) << "Wallet closed";
+      logger(INFO) << "The VGC wallet closed";
     }
   }
   return 1;

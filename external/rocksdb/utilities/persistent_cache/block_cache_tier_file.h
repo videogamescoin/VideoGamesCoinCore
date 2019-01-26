@@ -6,7 +6,6 @@
 
 #ifndef ROCKSDB_LITE
 
-#include <functional>
 #include <list>
 #include <memory>
 #include <string>
