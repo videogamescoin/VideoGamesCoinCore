@@ -1,36 +1,39 @@
-# B2BCoin
+# videogamescoin
 
-![alt text](https://b2bcoin.xyz/images/B2Bweb-icon-logo.svg "B2Bcoin")
+![VideoGamesCoin Logo](/vgc_logo.png)
 
--= Building B2BCoin =-
+Coin specifically designed for use with in Video Games to buy game assets
+---
+VideoGamesCoin is a cryptonote based coin specifically designed to use within Video Games.
 
-On *nix:
+It has same features like privacy, fungibility as other cryptonote based coins.
 
-Dependencies: GCC 4.7.3 or later, CMake 2.8.6 or later, and Boost 1.55.
-You may download them from:
-http://gcc.gnu.org/
-http://www.cmake.org/
-http://www.boost.org/
-Alternatively, it may be possible to install them using a package manager.
+## Coin Specifications
+* Ticker: VGC
+* Max Supply: 100,000,000
+* Emission Factor: 18
+* Block Timing: 120 Seconds (2 min)
 
-To build, change to a directory where this file is located, and run `make'. The resulting executables can be found in build/release/src.
+## Usage
+VideoGamesCoin is a cryptonote-based coin compatible with [forknote](https://github.com/forknote/forknote).
 
-Advanced options:
-Parallel build: run `make -j<number of threads>' instead of `make'.
-Debug build: run `make build-debug'.
-Test suite: run `make test-release' to run tests in addition to building. Running `make test-debug' will do the same to the debug version.
-Building with Clang: it may be possible to use Clang instead of GCC, but this may not work everywhere. To build, run `export CC=clang CXX=clang++' before running `make'.
+A standalone GUI wallet is coing soon
 
-On Windows:
-Dependencies: MSVC 2013 or later, CMake 2.8.6 or later, and Boost 1.55. You may download them from:
-http://www.microsoft.com/
-http://www.cmake.org/
-http://www.boost.org/
+## How to run node?
 
-To build, change to a directory where this file is located, and run this commands: 
-mkdir build
-cd build
-cmake -G "Visual Studio 12 Win64" ..
+1. Download the node from https://github.com/forknote/forknote/releases/download/2.1.2/forknote-linux.tar.gz
+Unzip the files in a folder.
 
-And then do Build.
-Good luck!
+2. Now download VideoGamesCoin config file from https://github.com/videogamescoin/config. The file name is videogamescoin.conf
+
+3. Create a folder named configs in the folder where forknoted is located.
+
+4. Copy the videogamescoin.conf file in the configs folder.
+
+5. Now you can run the node using the following command: ./forknoted --config-file configs/videogamescoin.conf
+
+## How to generate a new Wallet Address?
+
+1. Run the node by following instructions above.
+
+2. Run the simplewallet using the following command: ./simplewallet --config-file configs/videogamescoin.conf and then follow instructions. The Wallet will have prefix VEo.
