@@ -36,6 +36,8 @@ videogamescoin>> cd vgcnode
 
 videogamescoin>> mkdir build
 
+videogamescoin>> cd build
+
 videogamescoin>> cmake ..
 
 videogamescoin>> time make -j4
