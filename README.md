@@ -19,7 +19,7 @@ VideoGamesCoin is a cryptonote-based coin compatible with [forknote](https://git
 
 A standalone GUI wallet is coing soon
 
-## How to run node?
+## Run node?
 ---
 1. Install required packages
 
@@ -29,8 +29,6 @@ videogamescoin>> sudo apt-get install libboost-all-dev
 
 videogamescoin>> sudo apt-get install build-essential cmake pkg-config libssl-dev libunbound-dev libminiupnpc-dev libunwind8-dev liblzma-dev libldns-dev libexpat1-dev libgtest-dev doxygen graphviz
 
----
-
 2. Now get the code from git repository and build
 
 videogamescoin>> git clone https://github.com/videogamescoin/VideoGamesCoinCore.git vgcnode
@@ -39,16 +37,12 @@ videogamescoin>> mkdir build
 videogamescoin>> cmake ..
 videogamescoin>> time make -j4
 
----
-
 3. Now you can run the node using the following command.
 
 videogamescoin>> ./VGCd
 
+## Run Simple Wallet
 ---
-
-## How to generate a new Wallet Address?
-
 Run the simplewallet using the following command: 
 
 videogamescoin>> ./simplewallet 
