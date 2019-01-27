@@ -20,7 +20,7 @@ VideoGamesCoin is a cryptonote-based coin compatible with [forknote](https://git
 A standalone GUI wallet is coing soon
 
 ## How to run node?
-
+---
 1. Install required packages
 
 videogamescoin>> sudo apt-get update
@@ -28,7 +28,7 @@ videogamescoin>> sudo apt-get update
 videogamescoin>> sudo apt-get install libboost-all-dev
 
 videogamescoin>> sudo apt-get install build-essential cmake pkg-config libssl-dev libunbound-dev libminiupnpc-dev libunwind8-dev liblzma-dev libldns-dev libexpat1-dev libgtest-dev doxygen graphviz
-
+---
 
 2. Now download VideoGamesCoin config file from https://github.com/videogamescoin/config. The file name is videogamescoin.conf
 
