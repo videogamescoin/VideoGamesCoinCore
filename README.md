@@ -41,7 +41,6 @@ videogamescoin>> time make -j4
 videogamescoin>> ./VGCd
 
 ## Run Simple Wallet
----
 Run the simplewallet using the following command: 
 
 videogamescoin>> ./simplewallet 
