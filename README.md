@@ -28,18 +28,29 @@ videogamescoin>> sudo apt-get update
 videogamescoin>> sudo apt-get install libboost-all-dev
 
 videogamescoin>> sudo apt-get install build-essential cmake pkg-config libssl-dev libunbound-dev libminiupnpc-dev libunwind8-dev liblzma-dev libldns-dev libexpat1-dev libgtest-dev doxygen graphviz
+
 ---
 
-2. Now download VideoGamesCoin config file from https://github.com/videogamescoin/config. The file name is videogamescoin.conf
+2. Now get the code from git repository and build
 
-3. Create a folder named configs in the folder where forknoted is located.
+videogamescoin>> git clone https://github.com/videogamescoin/VideoGamesCoinCore.git vgcnode
+videogamescoin>> cd vgcnode
+videogamescoin>> mkdir build
+videogamescoin>> cmake ..
+videogamescoin>> time make -j4
 
-4. Copy the videogamescoin.conf file in the configs folder.
+---
 
-5. Now you can run the node using the following command: ./forknoted --config-file configs/videogamescoin.conf
+3. Now you can run the node using the following command.
+
+videogamescoin>> ./VGCd
+
+---
 
 ## How to generate a new Wallet Address?
 
-1. Run the node by following instructions above.
+Run the simplewallet using the following command: 
 
-2. Run the simplewallet using the following command: ./simplewallet --config-file configs/videogamescoin.conf and then follow instructions. The Wallet will have prefix VEo.
+videogamescoin>> ./simplewallet 
+
+The Wallet will have prefix VEo.
