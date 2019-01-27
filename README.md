@@ -19,8 +19,7 @@ VideoGamesCoin is a cryptonote-based coin compatible with [forknote](https://git
 
 A standalone GUI wallet is coing soon
 
-## Run node?
----
+## Run Node
 1. Install required packages
 
 videogamescoin>> sudo apt-get update
