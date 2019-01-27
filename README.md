@@ -19,21 +19,37 @@ VideoGamesCoin is a cryptonote-based coin compatible with [forknote](https://git
 
 A standalone GUI wallet is coing soon
 
-## How to run node?
+## Run Node
+1. Install required packages
 
-1. Download the node from https://github.com/forknote/forknote/releases/download/2.1.2/forknote-linux.tar.gz
-Unzip the files in a folder.
+videogamescoin>> sudo apt-get update
 
-2. Now download VideoGamesCoin config file from https://github.com/videogamescoin/config. The file name is videogamescoin.conf
+videogamescoin>> sudo apt-get install libboost-all-dev
 
-3. Create a folder named configs in the folder where forknoted is located.
+videogamescoin>> sudo apt-get install build-essential cmake pkg-config libssl-dev libunbound-dev libminiupnpc-dev libunwind8-dev liblzma-dev libldns-dev libexpat1-dev libgtest-dev doxygen graphviz
 
-4. Copy the videogamescoin.conf file in the configs folder.
+2. Now get the code from git repository and build
 
-5. Now you can run the node using the following command: ./forknoted --config-file configs/videogamescoin.conf
+videogamescoin>> git clone https://github.com/videogamescoin/VideoGamesCoinCore.git vgcnode
 
-## How to generate a new Wallet Address?
+videogamescoin>> cd vgcnode
 
-1. Run the node by following instructions above.
+videogamescoin>> mkdir build
 
-2. Run the simplewallet using the following command: ./simplewallet --config-file configs/videogamescoin.conf and then follow instructions. The Wallet will have prefix VEo.
+videogamescoin>> cd build
+
+videogamescoin>> cmake ..
+
+videogamescoin>> time make -j4
+
+
+3. Now you can run the node using the following command.
+
+videogamescoin>> ./VGCd
+
+## Run Simple Wallet
+Run the simplewallet using the following command: 
+
+videogamescoin>> ./simplewallet 
+
+The Wallet will have prefix VEo.
