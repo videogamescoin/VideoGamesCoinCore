@@ -34,14 +34,7 @@ videogamescoin>> git clone https://github.com/videogamescoin/VideoGamesCoinCore.
 
 videogamescoin>> cd vgcnode
 
-videogamescoin>> mkdir build
-
-videogamescoin>> cd build
-
-videogamescoin>> cmake ..
-
-videogamescoin>> time make -j4
-
+videogamescoin>> make
 
 3. Now you can run the node using the following command.
 
