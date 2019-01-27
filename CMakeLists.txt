@@ -1,151 +1,241 @@
 cmake_minimum_required(VERSION 2.8.6)
+include(CryptoNoteWallet.cmake)
 
-set(VERSION "0.1")
-# $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
+project(${CN_PROJECT_NAME})
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE TYPE INTERNAL)
-set(CMAKE_SKIP_INSTALL_RULES ON)
-set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
-set(CMAKE_SUPPRESS_REGENERATION ON)
-enable_testing()
-# copy CTestCustom.cmake to build dir to disable long running tests in 'make test'
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR})
+execute_process(COMMAND git log -1 --pretty=format:%h
+WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+OUTPUT_VARIABLE GIT_REVISION)
 
-project(Bytecoin)
+set(CRYPTONOTE_LIB cryptonote)
 
-include_directories(include src external "${CMAKE_CURRENT_BINARY_DIR}/version")
-if(APPLE)
-  include_directories(SYSTEM /usr/include/malloc)
-  enable_language(ASM)
-endif()
+include_directories(${CMAKE_BINARY_DIR}
+  src
+  include
+  cryptonote/external
+  cryptonote/external/rocksdb/include/
+  cryptonote/include
+  cryptonote/src
+)
 
-if(MSVC)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Windows)
-elseif(APPLE)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/OSX)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Posix)
-else()
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Linux)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Posix)
-endif()
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Network REQUIRED)
+find_package(Qt5DBus REQUIRED)
 
-set(STATIC ${MSVC} CACHE BOOL "Link libraries statically")
+include_directories(${Qt5DBus_INCLUDE_DIRS} cryptonote/external/rocksdb/include/ include src external "${CMAKE_CURRENT_BINARY_DIR}/version")
 
-if(MSVC)
-  add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /D_VARIADIC_MAX=8 /D__SSE4_1__")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10485760")
-  if(STATIC)
-    foreach(VAR CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE)
-      string(REPLACE "/MD" "/MT" ${VAR} "${${VAR}}")
-    endforeach()
-  endif()
-  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/msc)
-else()
-  if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    # This option has no effect in glibc version less than 2.20. 
-    # Since glibc 2.20 _BSD_SOURCE is deprecated, this macro is recomended instead
-    add_definitions("-D_DEFAULT_SOURCE -D_GNU_SOURCE")
-  endif()
-  set(ARCH native CACHE STRING "CPU to build for: -march value or default")
-  if("${ARCH}" STREQUAL "default")
-    set(ARCH_FLAG "")
-  else()
-    set(ARCH_FLAG "-march=${ARCH}")
-  endif()
-  set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Werror -Wno-error=extra -Wno-error=unused-function -Wno-error=deprecated-declarations -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result")
-  if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-    set(WARNINGS "${WARNINGS} -Wno-error=mismatched-tags -Wno-error=null-conversion -Wno-overloaded-shift-op-parentheses -Wno-error=shift-count-overflow -Wno-error=tautological-constant-out-of-range-compare -Wno-error=unused-private-field -Wno-error=unneeded-internal-declaration -Wno-error=unused-function -Wno-error=missing-braces")
-  else()
-    set(WARNINGS "${WARNINGS} -Wlogical-op -Wno-error=maybe-uninitialized -Wno-error=clobbered -Wno-error=unused-but-set-variable")
-  endif()
-  if(MINGW)
-    set(WARNINGS "${WARNINGS} -Wno-error=unused-value")
-    set(MINGW_FLAG "-DWIN32_LEAN_AND_MEAN")
-    include_directories(SYSTEM src/platform/mingw)
-  else()
-    set(MINGW_FLAG "")
-  endif()
-  if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 5.1))
-    set(WARNINGS "${WARNINGS} -Wno-error=odr")
-  endif()
-  set(C_WARNINGS "-Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes")
-  set(CXX_WARNINGS "-Wno-reorder -Wno-missing-field-initializers")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes")
-  if(NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-  endif()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
-  if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_HAS_TR1_TUPLE=0")
-  endif()
-  if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 4.8))
-    set(DEBUG_FLAGS "-g3 -Og -gdwarf-4 -fvar-tracking -fvar-tracking-assignments -fno-inline -fno-omit-frame-pointer")
-  else()
-    set(DEBUG_FLAGS "-g3 -O0 -fno-omit-frame-pointer")
-  endif()
-  set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
-  if(NOT APPLE)
-    # There is a clang bug that does not allow to compile code that uses AES-NI intrinsics if -flto is enabled
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux" 
-        AND CMAKE_BUILD_TYPE STREQUAL "Release" AND ((CMAKE_C_COMPILER_VERSION VERSION_GREATER 4.9) OR (CMAKE_C_COMPILER_VERSION VERSION_EQUAL 4.9)))
-      # On linux, to build in lto mode, check that ld.gold linker is used: 'update-alternatives --install /usr/bin/ld ld /usr/bin/ld.gold HIGHEST_PRIORITY'
-      set(CMAKE_AR gcc-ar)
-      set(CMAKE_RANLIB gcc-ranlib)
-    endif()
-    #set(RELEASE_FLAGS "${RELEASE_FLAGS} -flto")
-  endif()
-  #if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT MINGW)
-  #  set(RELEASE_FLAGS "${RELEASE_FLAGS} -fno-fat-lto-objects")
-  #endif()
-  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${RELEASE_FLAGS}")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RELEASE_FLAGS}")
-  if(STATIC AND NOT APPLE)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-  endif()
-endif()
-
-if(STATIC)
-  set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_LIBS ON)
+if(WIN32)
+  set(Boost_USE_STATIC_RUNTIME OFF)
+else(WIN32)
   set(Boost_USE_STATIC_RUNTIME ON)
-endif()
-find_package(Boost 1.55 REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-if(MINGW)
-  set(Boost_LIBRARIES "${Boost_LIBRARIES};ws2_32;mswsock")
+endif(WIN32)
+
+find_package(Boost 1.58 REQUIRED COMPONENTS date_time filesystem program_options regex serialization system thread chrono)
+if ((${Boost_MAJOR_VERSION} EQUAL 1) AND (${Boost_MINOR_VERSION} EQUAL 54))
+  message(SEND_ERROR "Boost version 1.58 is unsupported, more details are available here http://goo.gl/RrCFmA")
+endif ()
+
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
+set(VERSION "")
+configure_file("cryptonote/src/version.h.in" "version.h")
+configure_file("src/CryptoNoteWalletConfig.h.in" "CryptoNoteWalletConfig.h")
+
+add_definitions(-DGIT_REVISION="${GIT_REVISION}")
+
+set(CMAKE_AUTOMOC ON)
+
+file(GLOB_RECURSE CRYPTONOTE_SOURCES
+  cryptonote/external/miniupnpc/connecthostport.c
+  cryptonote/external/miniupnpc/igd_desc_parse.c
+  cryptonote/external/miniupnpc/minisoap.c
+  cryptonote/external/miniupnpc/miniupnpc.c
+  cryptonote/external/miniupnpc/miniwget.c
+  cryptonote/external/miniupnpc/minixml.c
+  cryptonote/external/miniupnpc/portlistingparse.c
+  cryptonote/external/miniupnpc/receivedata.c
+  cryptonote/external/miniupnpc/upnpcommands.c
+  cryptonote/external/miniupnpc/upnpreplyparse.c
+  cryptonote/src/BlockchainExplorer/BlockchainExplorer.cpp
+  cryptonote/src/BlockchainExplorer/BlockchainExplorerErrors.cpp
+  cryptonote/src/Common/Base58.cpp
+  cryptonote/src/Common/CommandLine.cpp
+  cryptonote/src/Common/Util.cpp
+  cryptonote/src/Common/StringTools.cpp
+  cryptonote/src/Common/JsonValue.cpp
+  cryptonote/src/Common/ConsoleTools.cpp
+  cryptonote/src/Common/MemoryInputStream.cpp
+  cryptonote/src/Common/PathTools.cpp
+  cryptonote/src/Common/StdInputStream.cpp
+  cryptonote/src/Common/StdOutputStream.cpp
+  cryptonote/src/Common/StreamTools.cpp
+  cryptonote/src/Common/StringOutputStream.cpp
+  cryptonote/src/Common/StringView.cpp
+  cryptonote/src/Common/VectorOutputStream.cpp
+  cryptonote/src/Common/ScopeExit.cpp
+  cryptonote/src/ConnectivityTool/ConnectivityTool.cpp
+  cryptonote/src/crypto/blake256.c
+  cryptonote/src/crypto/chacha8.c
+  cryptonote/src/crypto/crypto-ops-data.c
+  cryptonote/src/crypto/crypto-ops.c
+  cryptonote/src/crypto/crypto.cpp
+  cryptonote/src/crypto/groestl.c
+  cryptonote/src/crypto/hash-extra-blake.c
+  cryptonote/src/crypto/hash-extra-groestl.c
+  cryptonote/src/crypto/hash-extra-jh.c
+  cryptonote/src/crypto/hash-extra-skein.c
+  cryptonote/src/crypto/hash.c
+  cryptonote/src/crypto/jh.c
+  cryptonote/src/crypto/keccak.c
+  cryptonote/src/crypto/oaes_lib.c
+  cryptonote/src/crypto/random.c
+  cryptonote/src/crypto/skein.c
+  cryptonote/src/crypto/slow-hash.c
+  cryptonote/src/crypto/slow-hash.cpp
+  cryptonote/src/crypto/tree-hash.c
+  cryptonote/src/CryptoNoteCore/*.cpp
+  cryptonote/src/CryptoNoteProtocol/*.cpp
+  cryptonote/src/Daemon/*.cpp
+  cryptonote/src/HTTP/*.cpp
+  cryptonote/src/InProcessNode/InProcessNode.cpp
+  cryptonote/src/InProcessNode/InProcessNodeErrors.cpp
+  cryptonote/src/Logging/*.cpp
+  cryptonote/src/NodeRpcProxy/NodeErrors.cpp
+  cryptonote/src/NodeRpcProxy/NodeRpcProxy.cpp
+  cryptonote/src/P2p/*.cpp
+  cryptonote/src/Rpc/*.cpp
+  cryptonote/src/Serialization/*.cpp
+  cryptonote/src/Transfers/BlockchainSynchronizer.cpp
+  cryptonote/src/Transfers/SynchronizationState.cpp
+  cryptonote/src/Transfers/TransfersConsumer.cpp
+  cryptonote/src/Transfers/TransfersContainer.cpp
+  cryptonote/src/Transfers/TransfersSubscription.cpp
+  cryptonote/src/Transfers/TransfersSynchronizer.cpp
+  cryptonote/src/Wallet/*.cpp
+  cryptonote/src/WalletLegacy/KeysStorage.cpp
+  cryptonote/src/WalletLegacy/WalletLegacy.cpp
+  cryptonote/src/WalletLegacy/WalletHelper.cpp
+  cryptonote/src/WalletLegacy/WalletLegacySerializer.cpp
+  cryptonote/src/WalletLegacy/WalletLegacySerialization.cpp
+  cryptonote/src/WalletLegacy/WalletTransactionSender.cpp
+  cryptonote/src/WalletLegacy/WalletUnconfirmedTransactions.cpp
+  cryptonote/src/WalletLegacy/WalletUserTransactionsCache.cpp
+  cryptonote/src/System/ContextGroup.cpp
+  cryptonote/src/System/Event.cpp
+  cryptonote/src/System/EventLock.cpp
+  cryptonote/src/System/InterruptedException.cpp
+  cryptonote/src/System/Ipv4Address.cpp
+  cryptonote/src/System/TcpStream.cpp
+  cryptonote/src/JsonRpcServer/*.cpp
+  cryptonote/src/PaymentGate/*.cpp
+  cryptonote/src/PaymentGateService/*.cpp
+  cryptonote/src/Miner/*.cpp
+)
+
+file(GLOB_RECURSE SOURCES src/*.cpp)
+file(GLOB_RECURSE HEADERS src/*.h)
+file(GLOB_RECURSE FORMS src/gui/ui/*.ui)
+
+if(MSVC)
+  include_directories(Platform/Windows)
+  set(SOURCES ${SOURCES} ${CMAKE_SOURCE_DIR}/Platform/Windows/ApplicationEventHandler.cpp)
 elseif(APPLE)
-  set(Boost_LIBRARIES "${Boost_LIBRARIES}")
-elseif(NOT MSVC)
-  set(Boost_LIBRARIES "${Boost_LIBRARIES};rt")
-endif()
-
-set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/version")
-if (NOT COMMIT_ID_IN_VERSION)
-  set(VERSION "${VERSION}-unknown")
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-  add_custom_target(version ALL)
-elseif(DEFINED COMMIT)
-  string(REPLACE "." "\\." VERSION_RE "${VERSION}")
-  if(NOT REFS MATCHES "(\\(|, )tag: v${VERSION_RE}(\\)|, )")
-    set(VERSION "${VERSION}-g${COMMIT}")
-  endif()
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-  add_custom_target(version ALL)
+  include_directories(Platform/OSX)
+  include_directories(Platform/Posix)
+  set(SOURCES ${SOURCES} ${CMAKE_SOURCE_DIR}/Platform/OSX/ApplicationEventHandler.h ${CMAKE_SOURCE_DIR}/Platform/OSX/ApplicationEventHandler.mm ${CMAKE_SOURCE_DIR}/Platform/OSX/INotificationMonitorObserver.h ${CMAKE_SOURCE_DIR}/Platform/OSX/NotificationMonitor.h ${CMAKE_SOURCE_DIR}/Platform/OSX/NotificationMonitor.mm ${CMAKE_SOURCE_DIR}/Platform/OSX/WalletApplication.mm )
+  set(SOURCES ${SOURCES} ${CMAKE_SOURCE_DIR}/Platform/Posix/System/MemoryMappedFile.cpp)
 else()
-  find_package(Git QUIET)
-  if(Git_FOUND OR GIT_FOUND)
-    message(STATUS "Found Git: ${GIT_EXECUTABLE}")
-    add_custom_target(version ALL "${CMAKE_COMMAND}" "-D" "VERSION=${VERSION}" "-D" "GIT=${GIT_EXECUTABLE}" "-D" "TO=${CMAKE_CURRENT_BINARY_DIR}/version/version.h" "-P" "${CMAKE_CURRENT_SOURCE_DIR}/src/version.cmake" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-  else()
-    message(STATUS "WARNING: Git was not found!")
-    set(VERSION "${VERSION}-unknown")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-    add_custom_target(version ALL)
-  endif()
+  include_directories(Platform/Linux)
+  include_directories(Platform/Posix)
+  set(SOURCES ${SOURCES} ${CMAKE_SOURCE_DIR}/Platform/Linux/ApplicationEventHandler.cpp)
+  set(SOURCES ${SOURCES} ${CMAKE_SOURCE_DIR}/Platform/Posix/System/MemoryMappedFile.cpp)
 endif()
 
-add_subdirectory(external)
-add_subdirectory(src)
+
+set(QRC src/resources.qrc)
+
+qt5_wrap_ui(UIS ${FORMS})
+qt5_add_resources(RCC ${QRC})
+
+if (WIN32)
+  if (NOT MSVC)
+    message(FATAL_ERROR "Only MSVC is supported on this platform")
+  endif ()
+
+  add_definitions(/D_CRT_SECURE_NO_WARNINGS /D_WIN32_WINNT=0x0600 /DSTATICLIB)
+  include_directories(cryptonote/src/Platform/msc)
+
+  set(PLATFORM_DIR Windows)
+  set(BUILD_PLATFORM WIN32)
+  set(BUILD_RESOURCES src/inbestcoinwallet.rc)
+  set(QTMAIN Qt5::WinMain)
+
+elseif (UNIX)
+
+  set(CRYPTONOTE_SOURCES ${CRYPTONOTE_SOURCES} cryptonote/external/miniupnpc/minissdpc.c)
+
+  if (APPLE)
+    enable_language(ASM)
+    file(GLOB_RECURSE OBJC_SOURCES src/*.mm)
+    set(SOURCES ${SOURCES} ${OBJC_SOURCES})
+    set(PLATFORM_DIR OSX)
+    set(MACOSX_BUNDLE_INFO_STRING "Cryptonote GUI wallet")
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "${VERSION_VERSION}.${VERSION_MINOR}.${VERSION_PATCH}")
+    set(MACOSX_BUNDLE_BUNDLE_NAME CryptonoteWallet)
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${VERSION_VERSION}.${VERSION_MINOR}.${VERSION_PATCH}")
+    set(MACOSX_BUNDLE_BUNDLE_VERSION "$${VERSION_VERSION}.${VERSION_MINOR}.${VERSION_PATCH}")
+
+    find_package(Qt5PrintSupport REQUIRED)
+
+    include_directories(/usr/include/malloc)
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -std=c++11 -stdlib=libc++")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -maes -D_DARWIN_C_SOURCE")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework Cocoa -framework OpenGL -framework CoreFoundation -framework Carbon -framework IOKit -L/usr/lib")
+
+    set(MACOSX_BUNDLE_ICON_FILE cryptonote.icns)
+    set(APPLICATION_ICON src/images/cryptonote.icns)
+    set_source_files_properties(${APPLICATION_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+    set(BUILD_PLATFORM MACOSX_BUNDLE)
+    set(BUILD_RESOURCES ${APPLICATION_ICON})
+
+    GET_TARGET_PROPERTY(QT_LIB_DIR "${Qt5Widgets_LIBRARIES}" LOCATION)
+    GET_FILENAME_COMPONENT(QT_LIB_DIR "${QT_LIB_DIR}" PATH)
+
+  else(APPLE)
+
+    set(PLATFORM_DIR Linux)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes -std=c++11")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -std=c11")
+  endif (APPLE)
+endif ()
+
+include_directories(cryptonote/src/Platform/${PLATFORM_DIR})
+file(GLOB PLATFORM_SOURCES cryptonote/src/Platform/${PLATFORM_DIR}/System/*)
+set(CRYPTONOTE_SOURCES ${CRYPTONOTE_SOURCES} ${PLATFORM_SOURCES} ${CRYPTONOTE_PLATFORM})
+
+add_library(${CRYPTONOTE_LIB} STATIC ${CRYPTONOTE_SOURCES})
+set_target_properties(${CRYPTONOTE_LIB} PROPERTIES COMPILE_DEFINITIONS _GNU_SOURCE)
+target_link_libraries(${CRYPTONOTE_LIB} rocksdb ${Boost_LIBRARIES} ${Qt5DBus_LIBRARIES})
+
+add_executable(${PROJECT_NAME} ${BUILD_PLATFORM} ${BUILD_RESOURCES} ${SOURCES} ${HEADERS} ${UIS} ${RCC})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS _GNU_SOURCE)
+target_link_libraries(${PROJECT_NAME} rocksdb ${Boost_LIBRARIES} ${QTMAIN} ${CRYPTONOTE_LIB} ${Qt5DBus_LIBRARIES})
+
+if (APPLE)
+  qt5_use_modules(${PROJECT_NAME} PrintSupport)
+elseif (UNIX)
+  target_link_libraries(${PROJECT_NAME} -lpthread)
+elseif (WIN32)
+  target_link_libraries(${PROJECT_NAME} rpcrt4.lib wtsapi32.lib  Imm32 Iphlpapi Winmm)
+endif (APPLE)
+
+qt5_use_modules(${PROJECT_NAME} Widgets Gui Network)
+
+add_subdirectory(cryptonote/external)
+#add_subdirectory(cryptonote/src)
