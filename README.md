@@ -21,8 +21,14 @@ A standalone GUI wallet is coing soon
 
 ## How to run node?
 
-1. Download the node from https://github.com/forknote/forknote/releases/download/2.1.2/forknote-linux.tar.gz
-Unzip the files in a folder.
+1. Install required packages
+
+videogamescoin>> sudo apt-get update
+
+videogamescoin>> sudo apt-get install libboost-all-dev
+
+videogamescoin>> sudo apt-get install build-essential cmake pkg-config libssl-dev libunbound-dev libminiupnpc-dev libunwind8-dev liblzma-dev libldns-dev libexpat1-dev libgtest-dev doxygen graphviz
+
 
 2. Now download VideoGamesCoin config file from https://github.com/videogamescoin/config. The file name is videogamescoin.conf
 
