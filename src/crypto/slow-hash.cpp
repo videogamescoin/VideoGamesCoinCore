@@ -69,8 +69,10 @@ namespace Crypto {
     if (munmap(data, MAP_SIZE) != 0) {
       std::terminate();
     }
+
   }
 
 #endif
 
 }
+

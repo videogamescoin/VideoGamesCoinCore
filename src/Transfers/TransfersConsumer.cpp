@@ -1,8 +1,4 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The BBSCoin Developers
-// Copyright (c) 2018, The Karbo Developers
-// Copyright (c) 2018, The TurtleCoin Developers
-// Copyright (c) 2018, The Newton Developers
 //
 // This file is part of Bytecoin.
 //
@@ -35,11 +31,6 @@
 
 using namespace Crypto;
 using namespace Logging;
-using namespace Common;
-
-std::unordered_set<Crypto::Hash> transactions_hash_seen;
-std::unordered_set<Crypto::PublicKey> public_keys_seen;
-std::mutex seen_mutex;
 
 namespace {
 
@@ -139,7 +130,9 @@ ITransfersSubscription& TransfersConsumer::addSubscription(const AccountSubscrip
     m_spendKeys.insert(subscription.keys.address.spendPublicKey);
 
     if (m_subscriptions.size() == 1) {
-      m_syncStart = res->getSyncStart();
+    auto subStart = res->getSyncStart();
+    m_syncStart.height = std::min(m_syncStart.height, subStart.height);
+    m_syncStart.timestamp = std::min(m_syncStart.timestamp, subStart.timestamp);
     } else {
       auto subStart = res->getSyncStart();
       m_syncStart.height = std::min(m_syncStart.height, subStart.height);
@@ -420,26 +413,17 @@ void TransfersConsumer::removeUnconfirmedTransaction(const Crypto::Hash& transac
   m_observerManager.notify(&IBlockchainConsumerObserver::onTransactionDeleteEnd, this, transactionHash);
 }
 
-void TransfersConsumer::addPublicKeysSeen(const Crypto::Hash& transactionHash, const Crypto::PublicKey& outputKey) {
- 	std::lock_guard<std::mutex> lk(seen_mutex);
- 	transactions_hash_seen.insert(transactionHash);
- 	public_keys_seen.insert(outputKey);
-}
-
 std::error_code createTransfers(
   const AccountKeys& account,
   const TransactionBlockInfo& blockInfo,
   const ITransactionReader& tx,
   const std::vector<uint32_t>& outputs,
   const std::vector<uint32_t>& globalIdxs,
-  std::vector<TransactionOutputInformationIn>& transfers,
- 	Logging::LoggerRef& m_logger) 
-  {
+  std::vector<TransactionOutputInformationIn>& transfers) {
+
   auto txPubKey = tx.getTransactionPublicKey();
-  std::vector<PublicKey> temp_keys;
-  std::lock_guard<std::mutex> lk(seen_mutex);
+
   for (auto idx : outputs) {
-    bool isDuplicate = false;
 
     if (idx >= tx.getOutputCount()) {
       return std::make_error_code(std::errc::argument_out_of_domain);
@@ -447,7 +431,8 @@ std::error_code createTransfers(
 
     auto outType = tx.getOutputType(size_t(idx));
 
-    if (outType != TransactionTypes::OutputType::Key) {
+    if (
+      outType != TransactionTypes::OutputType::Key) {
       continue;
     }
 
@@ -474,43 +459,20 @@ std::error_code createTransfers(
 
       assert(out.key == reinterpret_cast<const PublicKey&>(in_ephemeral.publicKey));
 
-      if (transactions_hash_seen.find(tx.getTransactionHash()) == transactions_hash_seen.end())
-      {
-        if (public_keys_seen.find(out.key) != public_keys_seen.end())
-        {
-          m_logger(WARNING, BRIGHT_RED) << "A duplicate public key was found in " << Common::podToHex(tx.getTransactionHash());
-          isDuplicate = true;
-        }
-        else
-        {
-          temp_keys.push_back(out.key);
-        }
-      }
       info.amount = amount;
       info.outputKey = out.key;
 
     }
 
-    if (!isDuplicate) {
-      transfers.push_back(info);
-    }
+    transfers.push_back(info);
   }
 
-  transactions_hash_seen.insert(tx.getTransactionHash());
-  std::copy(temp_keys.begin(), temp_keys.end(), std::inserter(public_keys_seen, public_keys_seen.end()));
   return std::error_code();
 }
 
 std::error_code TransfersConsumer::preprocessOutputs(const TransactionBlockInfo& blockInfo, const ITransactionReader& tx, PreprocessInfo& info) {
   std::unordered_map<PublicKey, std::vector<uint32_t>> outputs;
-  try {
- 	  findMyOutputs(tx, m_viewSecret, m_spendKeys, outputs);
-  }
-  catch (const std::exception& e)
-  {
- 	  m_logger(WARNING, BRIGHT_RED) << "Failed to process transaction: " << e.what() << ", transaction hash " << Common::podToHex(tx.getTransactionHash());
- 	  return std::error_code();
-  }
+  findMyOutputs(tx, m_viewSecret, m_spendKeys, outputs);
 
   if (outputs.empty()) {
     return std::error_code();
@@ -529,7 +491,7 @@ std::error_code TransfersConsumer::preprocessOutputs(const TransactionBlockInfo&
     auto it = m_subscriptions.find(kv.first);
     if (it != m_subscriptions.end()) {
       auto& transfers = info.outputs[kv.first];
-      errorCode = createTransfers(it->second->getKeys(), blockInfo, tx, kv.second, info.globalIdxs, transfers, m_logger);
+      errorCode = createTransfers(it->second->getKeys(), blockInfo, tx, kv.second, info.globalIdxs, transfers);
       if (errorCode) {
         return errorCode;
       }

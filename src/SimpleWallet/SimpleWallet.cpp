@@ -1,4 +1,5 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018, The B2Bcoin developers
 //
 // This file is part of Bytecoin.
 //
@@ -74,6 +75,7 @@ const command_line::arg_descriptor<std::string> arg_password = { "password", "Wa
 const command_line::arg_descriptor<uint16_t> arg_daemon_port = { "daemon-port", "Use daemon instance at port <arg> instead of 39156", 0 };
 const command_line::arg_descriptor<uint32_t> arg_log_level = { "set_log", "", INFO, true };
   const command_line::arg_descriptor<uint64_t> arg_DEFAULT_FEE  = {"DEFAULT_FEE", "Default fee", CryptoNote::parameters::DEFAULT_FEE};  
+  const command_line::arg_descriptor<bool>      arg_SYNC_FROM_ZERO  = {"SYNC_FROM_ZERO", "Sync from block 0. Use for premine wallet or brainwallet", false};
 const command_line::arg_descriptor<bool> arg_testnet = { "testnet", "Used to deploy test nets. The daemon must be launched with --testnet flag", false };
 const command_line::arg_descriptor< std::vector<std::string> > arg_command = { "command", "" };
 
@@ -106,12 +108,12 @@ inline std::string interpret_rpc_response(bool ok, const std::string& status) {
   std::string err;
   if (ok) {
     if (status == CORE_RPC_STATUS_BUSY) {
-      err = "the B2B daemon is busy. Please try later";
+      err = "the VGC daemon is busy. Please try later";
     } else if (status != CORE_RPC_STATUS_OK) {
       err = status;
     }
   } else {
-    err = "possible lost connection to the B2B daemon";
+    err = "possible lost connection to the VGC daemon";
   }
   return err;
 }
@@ -167,6 +169,11 @@ struct TransferCommand {
         return false;
       }
 
+              if (fake_outs_count < m_currency.minMixin()) {
+                logger(ERROR, BRIGHT_RED) << "mixin should be equal or bigger to " << m_currency.minMixin();
+                return false;
+              }
+
       while (!ar.eof()) {
 
         auto arg = ar.next();
@@ -201,7 +208,7 @@ struct TransferCommand {
             if (CryptoNote::parsePaymentId(arg, paymentId)) {
               logger(ERROR, BRIGHT_RED) << "Invalid payment ID usage. Please, use -p <payment_id>. See help for details.";
             } else {
-              logger(ERROR, BRIGHT_RED) << "Wrong B2B address: " << arg;
+              logger(ERROR, BRIGHT_RED) << "Wrong VGC address: " << arg;
             }
 
             return false;
@@ -222,7 +229,7 @@ struct TransferCommand {
       }
 
       if (dsts.empty()) {
-        logger(ERROR, BRIGHT_RED) << "At least one destination B2B address is required";
+        logger(ERROR, BRIGHT_RED) << "At least one destination VGC address is required";
         return false;
       }
     } catch (const std::exception& e) {
@@ -282,11 +289,11 @@ std::string tryToOpenWalletOrLoadKeysOrThrow(LoggerRef& logger, std::unique_ptr<
   }
 
   if (walletExists) {
-    logger(INFO) << "Loading the B2B wallet...";
+    logger(INFO) << "Loading the VGC wallet...";
     std::ifstream walletFile;
     walletFile.open(walletFileName, std::ios_base::binary | std::ios_base::in);
     if (walletFile.fail()) {
-      throw std::runtime_error("Error opening the B2B wallet file '" + walletFileName + "'");
+      throw std::runtime_error("Error opening the VGC wallet file '" + walletFileName + "'");
     }
 
     auto initError = initAndLoadWallet(*wallet, walletFile, password);
@@ -301,22 +308,22 @@ std::string tryToOpenWalletOrLoadKeysOrThrow(LoggerRef& logger, std::unique_ptr<
 
         initError = initAndLoadWallet(*wallet, ss, password);
         if (initError) {
-          throw std::runtime_error("Failed to load the B2B wallet: " + initError.message());
+          throw std::runtime_error("Failed to load the VGC wallet: " + initError.message());
         }
 
-        logger(INFO) << "Storing the B2B wallet...";
+        logger(INFO) << "Storing the VGC wallet...";
 
         try {
           CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
         } catch (std::exception& e) {
-          logger(ERROR, BRIGHT_RED) << "Failed to store the B2B wallet: " << e.what();
-          throw std::runtime_error("Error saving the B2B wallet file '" + walletFileName + "'");
+          logger(ERROR, BRIGHT_RED) << "Failed to store the VGC wallet: " << e.what();
+          throw std::runtime_error("Error saving the VGC wallet file '" + walletFileName + "'");
         }
 
         logger(INFO, BRIGHT_GREEN) << "Stored ok";
         return walletFileName;
       } else { // no keys, wallet error loading
-        throw std::runtime_error("can't load the B2B wallet file '" + walletFileName + "', check the password");
+        throw std::runtime_error("can't load the VGC wallet file '" + walletFileName + "', check the password");
       }
     } else { //new wallet ok 
       return walletFileName;
@@ -335,22 +342,22 @@ std::string tryToOpenWalletOrLoadKeysOrThrow(LoggerRef& logger, std::unique_ptr<
 
     removeGuard.removeObserver();
     if (initError) {
-      throw std::runtime_error("Failed to load the B2B wallet: " + initError.message());
+      throw std::runtime_error("Failed to load the VGC wallet: " + initError.message());
     }
 
-    logger(INFO) << "Storing the B2B wallet...";
+    logger(INFO) << "Storing the VGC wallet...";
 
     try {
       CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
     } catch(std::exception& e) {
-      logger(ERROR, BRIGHT_RED) << "Failed to store the B2B wallet: " << e.what();
-      throw std::runtime_error("Error saving the B2B wallet file '" + walletFileName + "'");
+      logger(ERROR, BRIGHT_RED) << "Failed to store the VGC wallet: " << e.what();
+      throw std::runtime_error("Error saving the VGC wallet file '" + walletFileName + "'");
     }
 
     logger(INFO, BRIGHT_GREEN) << "Stored ok";
     return walletFileName;
   } else { //no wallet no keys
-    throw std::runtime_error("The B2B wallet file '" + walletFileName + "' is not found");
+    throw std::runtime_error("The VGC wallet file '" + walletFileName + "' is not found");
   }
 }
 
@@ -470,27 +477,22 @@ simple_wallet::simple_wallet(System::Dispatcher& dispatcher, const CryptoNote::C
   //m_consoleHandler.setHandler("start_mining", boost::bind(&simple_wallet::start_mining, this, _1), "start_mining [<number_of_threads>] - Start mining in daemon");
   //m_consoleHandler.setHandler("stop_mining", boost::bind(&simple_wallet::stop_mining, this, _1), "Stop mining in daemon");
   //m_consoleHandler.setHandler("refresh", boost::bind(&simple_wallet::refresh, this, _1), "Resynchronize transactions and balance");
-  m_consoleHandler.setHandler("export_keys", boost::bind(&simple_wallet::export_keys, this, _1), "Show all the secret keys of the openned B2B wallet");
-  m_consoleHandler.setHandler("export_cli_key", boost::bind(&simple_wallet::export_cli_key, this, _1), "Show the secret keys for the CLI wallet");
-  m_consoleHandler.setHandler("export_gui_key", boost::bind(&simple_wallet::export_gui_key, this, _1), "Show the secret key for the GUI wallet");
-  m_consoleHandler.setHandler("export_tracking_key", boost::bind(&simple_wallet::export_tracking_key, this, _1), "Show the public key for the GUI wallet, you can share this with anyone and they can see you balance but not spend it.");
-  m_consoleHandler.setHandler("balance", boost::bind(&simple_wallet::show_balance, this, _1), "Show the current B2B wallet balance");
-  m_consoleHandler.setHandler("list_incoming_transfers", boost::bind(&simple_wallet::show_incoming_transfers, this, _1), "Show all incoming transfers");
-  m_consoleHandler.setHandler("list_outgoing_transfers", boost::bind(&simple_wallet::show_outgoing_transfers, this, _1), "Show all outgoing transfers");
-  m_consoleHandler.setHandler("list_all_transfers", boost::bind(&simple_wallet::listTransfers, this, _1), "Show all known transfers to and from the wallet");
+  m_consoleHandler.setHandler("export_keys", boost::bind(&simple_wallet::export_keys, this, _1), "Show the secret keys of the openned VGC wallet");
+  m_consoleHandler.setHandler("balance", boost::bind(&simple_wallet::show_balance, this, _1), "Show the current VGC wallet balance");
+  m_consoleHandler.setHandler("incoming_transfers", boost::bind(&simple_wallet::show_incoming_transfers, this, _1), "Show incoming transfers");
+  m_consoleHandler.setHandler("list_transfers", boost::bind(&simple_wallet::listTransfers, this, _1), "Show all known transfers");
   m_consoleHandler.setHandler("payments", boost::bind(&simple_wallet::show_payments, this, _1), "payments <payment_id_1> [<payment_id_2> ... <payment_id_N>] - Show payments <payment_id_1>, ... <payment_id_N>");
-  m_consoleHandler.setHandler("generate_payment_id", boost::bind(&simple_wallet::generate_payment_id, this, _1), "Generate a random Payment ID");
-  m_consoleHandler.setHandler("bc_height", boost::bind(&simple_wallet::show_blockchain_height, this, _1), "Show the B2B blockchain height");
+  m_consoleHandler.setHandler("bc_height", boost::bind(&simple_wallet::show_blockchain_height, this, _1), "Show the VGC blockchain height");
   m_consoleHandler.setHandler("transfer", boost::bind(&simple_wallet::transfer, this, _1),
     "transfer <mixin_count> <addr_1> <amount_1> [<addr_2> <amount_2> ... <addr_N> <amount_N>] [-p payment_id] [-f fee]"
     " - Transfer <amount_1>,... <amount_N> to <address_1>,... <address_N>, respectively. "
     "<mixin_count> is the number of transactions yours is indistinguishable from (from 0 to maximum available)");
   m_consoleHandler.setHandler("set_log", boost::bind(&simple_wallet::set_log, this, _1), "set_log <level> - Change current log level, <level> is a number 0-4");
-  m_consoleHandler.setHandler("address", boost::bind(&simple_wallet::print_address, this, _1), "Show the current B2B wallet public address");
-  m_consoleHandler.setHandler("save", boost::bind(&simple_wallet::save, this, _1), "Save the B2B wallet synchronized data");
+  m_consoleHandler.setHandler("address", boost::bind(&simple_wallet::print_address, this, _1), "Show the current VGC wallet public address");
+  m_consoleHandler.setHandler("save", boost::bind(&simple_wallet::save, this, _1), "Save the VGC wallet synchronized data");
   m_consoleHandler.setHandler("reset", boost::bind(&simple_wallet::reset, this, _1), "Discard cache data and start synchronizing from the start");
   m_consoleHandler.setHandler("help", boost::bind(&simple_wallet::help, this, _1), "Show this help");
-  m_consoleHandler.setHandler("exit", boost::bind(&simple_wallet::exit, this, _1), "Close the B2B wallet");
+  m_consoleHandler.setHandler("exit", boost::bind(&simple_wallet::exit, this, _1), "Close the VGC wallet");
 }
 //----------------------------------------------------------------------------------------------------
 bool simple_wallet::set_log(const std::vector<std::string> &args) {
@@ -518,33 +520,18 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
   handle_command_line(vm);
 
   if (!m_daemon_address.empty() && (!m_daemon_host.empty() || 0 != m_daemon_port)) {
-    fail_msg_writer() << "you can't specify a B2B daemon host or port several times";
+    fail_msg_writer() << "you can't specify a VGC daemon host or port several times";
     return false;
   }
 
   if (m_generate_new.empty() && m_wallet_file_arg.empty()) {
-    std::cout << "          .-----------------     | B2Bcoin CLI wallet                                |\n"
-			 "          ```````````````..---   | ------------------------------------------------- |\n"
-			 "                           `--.  | Homepage:                     https://b2bcoin.xyz |\n"
-			 "                           `--.  | Mining pool:               http://pool.b2bcoin.ml |\n"
-			 "                         ``---`  | ------------------------------------------------- |\n"
-			 "      `---------------------.    |                                                   |\n"
-			 "      `````````````````````      | https://bitcointalk.org/index.php?topic=2098163.0 |\n"
-			 "     `..`  :::::::::::::::-.     | https://t.me/joinchat/Fxlb2Qw8ivAta7iYgM0Wiw      |\n"
-			 "     ---` /oooooooooooooooooo:`  | https://discordapp.com/invite/QwhhqPY             |\n"
-			 "    .--` -oo+`````````````-/oo+` | https://twitter.com/coinB2B                       |\n"
-			 "   `--.  ooo`               -oo+ | https://www.facebook.com/b2beyond                 |\n"
-			 "  `---  /oo-                 +oo | https://forum.b2bcoin.xyz/index.php               |\n"
-			 "  ---` -oo/  --------------  +oo | https://github.com/oliviersinnaeve                |\n"
-			 " .--. .ooo` ``````````````  /oo: |                                                   |\n"
-			 "`---  +oo+::::::::::::::::+ooo:  | Exchanges: STEX, FirstCryptoBank                  |\n"
-			 "---` :ooooooooooooooooooooo+:`   | Coming soon: Meroex.com !!!                       |\n"
+    std::cout << "VideoGamesCoin CLI wallet\n\n"
 			 " ____ _________________________________     ____ ____________________________________ \n"
-			 "||G |||Generate a new B2B wallet file ||   ||I |||Create a new B2B wallet file from ||\n"
+			 "||G |||Generate a new VGC wallet file ||   ||I |||Create a new VGC wallet file from ||\n"
 			 "||__|||_______________________________||   ||__|||the Secret Spend and View keys    ||\n"
 			 "|/__\\|/_______________________________\\|   |/__\\||__________________________________||\n"
 			 " ____ _________________________                 |/__________________________________\\|\n"
-			 "||O |||Open a B2B wallet file || \n"
+			 "||O |||Open a VGC wallet file || \n"
 			 "||__|||_______________________|| \n"
 			 "|/__\\|/_______________________\\| \n"
 			 " ____ _______  \n"
@@ -568,10 +555,10 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
       return false;
     }
 
-    std::cout << "Specify a B2B wallet file name (e.g., myB2Bwallet.wallet).\n";
+    std::cout << "Specify a VGC wallet file name (e.g., myVGCwallet.wallet).\n";
     std::string userInput;
     do {
-      std::cout << "B2B wallet file name: ";
+      std::cout << "VGC wallet file name: ";
       std::getline(std::cin, userInput);
       boost::algorithm::trim(userInput);
     } while (userInput.empty());
@@ -591,7 +578,8 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
   }
 
   std::string walletFileName;
-  if (!m_generate_new.empty() || !m_import_new.empty()) {
+  sync_from_zero = command_line::get_arg(vm, arg_SYNC_FROM_ZERO);
+    if (!m_generate_new.empty() || !m_import_new.empty()) {
     std::string ignoredString;
     if (!m_generate_new.empty()) {
       WalletHelper::prepareFileNames(m_generate_new, ignoredString, walletFileName);
@@ -613,7 +601,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
   
   if (!m_daemon_address.empty()) {
     if (!parseUrlAddress(m_daemon_address, m_daemon_host, m_daemon_port)) {
-      fail_msg_writer() << "Failed to parse the B2B daemon address: " << m_daemon_address;
+      fail_msg_writer() << "Failed to parse the VGC daemon address: " << m_daemon_address;
       return false;
     }
   } else {
@@ -623,8 +611,8 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
   Tools::PasswordContainer pwd_container;
   if (command_line::has_arg(vm, arg_password)) {
     pwd_container.password(command_line::get_arg(vm, arg_password));
-  } else if (!pwd_container.read_password(!m_generate_new.empty() || !m_import_new.empty())) {
-    fail_msg_writer() << "Failed to read the B2B wallet password";
+  } else if (!pwd_container.read_password()) {
+    fail_msg_writer() << "Failed to read the VGC wallet password";
     return false;
   }
 
@@ -642,6 +630,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
     return false;
   }
 
+  sync_from_zero = command_line::get_arg(vm, arg_SYNC_FROM_ZERO);
   if (!m_generate_new.empty()) {
     std::string walletAddressFile = prepareWalletAddressFilename(m_generate_new);
     boost::system::error_code ignore;
@@ -656,7 +645,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
     }
 
     if (!writeAddressFile(walletAddressFile, m_wallet->getAddress())) {
-      logger(WARNING, BRIGHT_RED) << "Couldn't write the B2B wallet address file: " + walletAddressFile;
+      logger(WARNING, BRIGHT_RED) << "Couldn't write the VGC wallet address file: " + walletAddressFile;
     }
   } else if (!m_import_new.empty()) {
     std::string walletAddressFile = prepareWalletAddressFilename(m_import_new);
@@ -669,12 +658,12 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
     std::string private_spend_key_string;
     std::string private_view_key_string;
     do {
-      std::cout << "Secret Spend Key: ";
+      std::cout << "Private Spend Key: ";
       std::getline(std::cin, private_spend_key_string);
       boost::algorithm::trim(private_spend_key_string);
     } while (private_spend_key_string.empty());
     do {
-      std::cout << "Secret View Key: ";
+      std::cout << "Private View Key: ";
       std::getline(std::cin, private_view_key_string);
       boost::algorithm::trim(private_view_key_string);
     } while (private_view_key_string.empty());
@@ -697,15 +686,18 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
     }
 
     if (!writeAddressFile(walletAddressFile, m_wallet->getAddress())) {
-      logger(WARNING, BRIGHT_RED) << "Couldn't write the B2B wallet address file: " + walletAddressFile;
+      logger(WARNING, BRIGHT_RED) << "Couldn't write the VGC wallet address file: " + walletAddressFile;
     }
   } else {
     m_wallet.reset(new WalletLegacy(m_currency, *m_node));
 
+
+    m_wallet->syncAll(sync_from_zero);
+
     try {
       m_wallet_file = tryToOpenWalletOrLoadKeysOrThrow(logger, m_wallet, m_wallet_file_arg, pwd_container.password());
     } catch (const std::exception& e) {
-      fail_msg_writer() << "Failed to load the B2B wallet: " << e.what();
+      fail_msg_writer() << "Failed to load the VGC wallet: " << e.what();
       return false;
     }
 
@@ -755,18 +747,19 @@ bool simple_wallet::new_wallet(const std::string &wallet_file, const std::string
   try {
     m_initResultPromise.reset(new std::promise<std::error_code>());
     std::future<std::error_code> f_initError = m_initResultPromise->get_future();
+    m_wallet->syncAll(sync_from_zero);
     m_wallet->initAndGenerate(password);
     auto initError = f_initError.get();
     m_initResultPromise.reset(nullptr);
     if (initError) {
-      fail_msg_writer() << "Failed to generate a new B2B wallet: " << initError.message();
+      fail_msg_writer() << "Failed to generate a new VGC wallet: " << initError.message();
       return false;
     }
 
     try {
       CryptoNote::WalletHelper::storeWallet(*m_wallet, m_wallet_file);
     } catch (std::exception& e) {
-      fail_msg_writer() << "Failed to save the new B2B wallet: " << e.what();
+      fail_msg_writer() << "Failed to save the new VGC wallet: " << e.what();
       throw;
     }
 
@@ -774,11 +767,11 @@ bool simple_wallet::new_wallet(const std::string &wallet_file, const std::string
     m_wallet->getAccountKeys(keys);
 
     logger(INFO, BRIGHT_GREEN) <<
-      "\n\nGenerated a new B2B wallet: \n" << m_wallet->getAddress() << "\n\n" <<
+      "\n\nGenerated a new VGC wallet: \n" << m_wallet->getAddress() << "\n\n" <<
       "Secret view key: \n" << Common::podToHex(keys.viewSecretKey) << "\n\n\n";
   }
   catch (const std::exception& e) {
-    fail_msg_writer() << "Failed to generate a new B2B wallet: " << e.what();
+    fail_msg_writer() << "Failed to generate a new VGC wallet: " << e.what();
     return false;
   }
 
@@ -815,14 +808,14 @@ bool simple_wallet::new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey 
     auto initError = f_initError.get();
     m_initResultPromise.reset(nullptr);
     if (initError) {
-      fail_msg_writer() << "Failed to generate a new B2B wallet: " << initError.message();
+      fail_msg_writer() << "Failed to generate a new VGC wallet: " << initError.message();
       return false;
     }
 
     try {
       CryptoNote::WalletHelper::storeWallet(*m_wallet, m_wallet_file);
     } catch (std::exception& e) {
-      fail_msg_writer() << "Failed to save the new B2B wallet: " << e.what();
+      fail_msg_writer() << "Failed to save the new VGC wallet: " << e.what();
       throw;
     }
 
@@ -830,10 +823,10 @@ bool simple_wallet::new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey 
     m_wallet->getAccountKeys(keys);
 
     logger(INFO, BRIGHT_GREEN) <<
-      "\n\nImported the B2B wallet: \n" << m_wallet->getAddress() << std::endl;
+      "\n\nImported the VGC wallet: \n" << m_wallet->getAddress() << std::endl;
   }
   catch (const std::exception& e) {
-    fail_msg_writer() << "Failed to import the B2B wallet: " << e.what();
+    fail_msg_writer() << "Failed to import the VGC wallet: " << e.what();
     return false;
   }
 
@@ -885,7 +878,7 @@ bool simple_wallet::reset(const std::vector<std::string> &args) {
   }
 
   m_wallet->reset();
-  success_msg_writer(true) << "Reset completed successfully, wait for the wallet to download all transactions from the daemon...";
+  success_msg_writer(true) << "Reset completed successfully.";
 
   std::unique_lock<std::mutex> lock(m_walletSynchronizedMutex);
   while (!m_walletSynchronized) {
@@ -930,7 +923,7 @@ bool simple_wallet::start_mining(const std::vector<std::string>& args) {
 
     std::string err = interpret_rpc_response(true, res.status);
     if (err.empty())
-      success_msg_writer() << "Mining started in the B2B daemon";
+      success_msg_writer() << "Mining started in the VGC daemon";
     else
       fail_msg_writer() << "mining has NOT been started: " << err;
 
@@ -954,7 +947,7 @@ bool simple_wallet::stop_mining(const std::vector<std::string>& args)
     invokeJsonCommand(httpClient, "/stop_mining", req, res);
     std::string err = interpret_rpc_response(true, res.status);
     if (err.empty())
-      success_msg_writer() << "Mining stopped in the B2B daemon";
+      success_msg_writer() << "Mining stopped in the VGC daemon";
     else
       fail_msg_writer() << "mining has NOT been stopped: " << err;
   } catch (const ConnectException&) {
@@ -974,7 +967,7 @@ void simple_wallet::initCompleted(std::error_code result) {
 //----------------------------------------------------------------------------------------------------
 void simple_wallet::connectionStatusUpdated(bool connected) {
   if (connected) {
-    logger(INFO, GREEN) << "Wallet connected to the B2B daemon.";
+    logger(INFO, GREEN) << "Wallet connected to the VGC daemon.";
   } else {
     printConnectionError();
   }
@@ -994,11 +987,11 @@ void simple_wallet::externalTransactionCreated(CryptoNote::TransactionId transac
   if (txInfo.totalAmount >= 0) {
     logger(INFO, GREEN) <<
       logPrefix.str() << " transaction " << Common::podToHex(txInfo.hash) <<
-      ", received " << m_currency.formatAmount(txInfo.totalAmount) << " B2B";
+      ", received " << m_currency.formatAmount(txInfo.totalAmount) << " VGC";
   } else {
     logger(INFO, MAGENTA) <<
       logPrefix.str() << " transaction " << Common::podToHex(txInfo.hash) <<
-      ", spent " << m_currency.formatAmount(static_cast<uint64_t>(-txInfo.totalAmount)) << " B2B";
+      ", spent " << m_currency.formatAmount(static_cast<uint64_t>(-txInfo.totalAmount)) << " VGC";
   }
 
   if (txInfo.blockHeight == WALLET_LEGACY_UNCONFIRMED_TRANSACTION_HEIGHT) {
@@ -1024,65 +1017,15 @@ void simple_wallet::synchronizationProgressUpdated(uint32_t current, uint32_t to
 bool simple_wallet::export_keys(const std::vector<std::string>& args/* = std::vector<std::string>()*/) {
   AccountKeys keys;
   m_wallet->getAccountKeys(keys);
-  success_msg_writer(true) << "\n\nAddress:\n" << m_wallet->getAddress() << "\n";
-  success_msg_writer(true) << 
-  "\n\n--------------------------- CLI KEYS ---------------------------\nSecret Spend Key:\n" << 
-  Common::podToHex(keys.spendSecretKey) << 
-  "\nSecret View Key:\n" << 
-  Common::podToHex(keys.viewSecretKey) << 
-  "\n\n\n--------------------------- GUI KEY ----------------------------\nSecret GUI Key:\n" << 
-  Common::podToHex(keys.address.spendPublicKey) << "\n" << 
-  Common::podToHex(keys.address.viewPublicKey) << "\n" << 
-  Common::podToHex(keys.spendSecretKey) << "\n" << 
-  Common::podToHex(keys.viewSecretKey) << 
-  "\n----------------------------------------------------------------\n\n";
-  return true;
-}
+  success_msg_writer(true) << "Secret Spend key: " << Common::podToHex(keys.spendSecretKey);
+  success_msg_writer(true) << "Secret View key:  " <<  Common::podToHex(keys.viewSecretKey);
 
-bool simple_wallet::export_cli_key(const std::vector<std::string>& args/* = std::vector<std::string>()*/) {
-  AccountKeys keys;
-  m_wallet->getAccountKeys(keys);
-  success_msg_writer(true) << "\n\nAddress:\n" << m_wallet->getAddress() << "\n";
-  success_msg_writer(true) << 
-  "\n\n--------------------------- CLI KEYS ---------------------------\nSecret Spend Key:\n" << 
-  Common::podToHex(keys.spendSecretKey) << 
-  "\nSecret View Key:\n" << 
-  Common::podToHex(keys.viewSecretKey) << 
-  "\n----------------------------------------------------------------\n\n";
-  return true;
-}
-
-bool simple_wallet::export_gui_key(const std::vector<std::string>& args/* = std::vector<std::string>()*/) {
-  AccountKeys keys;
-  m_wallet->getAccountKeys(keys);
-  success_msg_writer(true) << "\n\nAddress:\n" << m_wallet->getAddress() << "\n";
-  success_msg_writer(true) << 
-  "\n\n--------------------------- GUI KEY ----------------------------\nSecret GUI Key:\n" << 
-  Common::podToHex(keys.address.spendPublicKey) << "\n" << 
-  Common::podToHex(keys.address.viewPublicKey) << "\n" << 
-  Common::podToHex(keys.spendSecretKey) << "\n" << 
-  Common::podToHex(keys.viewSecretKey) << 
-  "\n----------------------------------------------------------------\n\n";
-  return true;
-}
-
-bool simple_wallet::export_tracking_key(const std::vector<std::string>& args/* = std::vector<std::string>()*/) {
-  AccountKeys keys;
-  m_wallet->getAccountKeys(keys);
-  success_msg_writer(true) << "\n\nAddress:\n" << m_wallet->getAddress() << "\n";
-  success_msg_writer(true) << 
-  "\n\n----------------------- GUI TRACKING KEY -----------------------\nPublic GUI Tracking Key:\n" << 
-  Common::podToHex(keys.address.spendPublicKey) << "\n" << 
-  Common::podToHex(keys.address.viewPublicKey) << 
-  "\n0000000000000000000000000000000000000000000000000000000000000000\n" << 
-  Common::podToHex(keys.viewSecretKey) << 
-  "\n----------------------------------------------------------------\n\n";
   return true;
 }
 
 bool simple_wallet::show_balance(const std::vector<std::string>& args/* = std::vector<std::string>()*/) {
-  success_msg_writer() << "\n\nAvailable balance: " << m_currency.formatAmount(m_wallet->actualBalance()) << " B2B\n" <<
-    "Locked amount: " << m_currency.formatAmount(m_wallet->pendingBalance()) << " B2B\n";
+  success_msg_writer() << "\n\nAvailable balance: " << m_currency.formatAmount(m_wallet->actualBalance()) << " VGC\n" <<
+    "Locked amount: " << m_currency.formatAmount(m_wallet->pendingBalance()) << " VGC\n";
 
   return true;
 }
@@ -1095,32 +1038,12 @@ bool simple_wallet::show_incoming_transfers(const std::vector<std::string>& args
     m_wallet->getTransaction(trantransactionNumber, txInfo);
     if (txInfo.totalAmount < 0) continue;
     hasTransfers = true;
-    logger(INFO) << "        Amount:      \t                              TX ID:";
+    logger(INFO) << "        amount       \t                              tx id";
     logger(INFO, GREEN) <<  // spent - magenta
       std::setw(21) << m_currency.formatAmount(txInfo.totalAmount) << '\t' << Common::podToHex(txInfo.hash);
   }
 
   if (!hasTransfers) success_msg_writer() << "No incoming transfers";
-  return true;
-}
-
-bool simple_wallet::show_outgoing_transfers(const std::vector<std::string>& args) {
-  bool hasTransfers = false;
-  size_t transactionsCount = m_wallet->getTransactionCount();
-  for (size_t transactionNumber = 0; transactionNumber < transactionsCount; ++transactionNumber) {
-    WalletLegacyTransaction txInfo;
-    m_wallet->getTransaction(transactionNumber, txInfo);
-    if (txInfo.totalAmount > 0) continue;
-    hasTransfers = true;
-    logger(INFO) << "        Amount:      \t                              TX ID:";
-  logger(INFO, BRIGHT_MAGENTA) << std::setw(TOTAL_AMOUNT_MAX_WIDTH) << m_currency.formatAmount(txInfo.totalAmount) << '\t' << Common::podToHex(txInfo.hash);
-   for (TransferId id = txInfo.firstTransferId; id < txInfo.firstTransferId + txInfo.transferCount; ++id) {
-    WalletLegacyTransfer tr;
-    m_wallet->getTransfer(id, tr);
-    logger(INFO, MAGENTA) << std::setw(TOTAL_AMOUNT_MAX_WIDTH) << m_currency.formatAmount(-tr.amount) << '\t' << tr.address;
-  }
-  }
-   if (!hasTransfers) success_msg_writer() << "No outgoing transfers";
   return true;
 }
 
@@ -1195,19 +1118,13 @@ bool simple_wallet::show_payments(const std::vector<std::string> &args) {
 
   return true;
 }
-
-bool simple_wallet::generate_payment_id(const std::vector<std::string> &args) {
-  success_msg_writer() << "Payment ID: " << Crypto::rand<Crypto::Hash>();
-  return true;
-}
-
 //----------------------------------------------------------------------------------------------------
 bool simple_wallet::show_blockchain_height(const std::vector<std::string>& args) {
   try {
     uint64_t bc_height = m_node->getLastLocalBlockHeight();
     success_msg_writer() << bc_height;
   } catch (std::exception &e) {
-    fail_msg_writer() << "Failed to get B2B blockchain height: " << e.what();
+    fail_msg_writer() << "Failed to get VGC blockchain height: " << e.what();
   }
 
   return true;
@@ -1228,7 +1145,7 @@ bool simple_wallet::transfer(const std::vector<std::string> &args) {
 
     CryptoNote::TransactionId tx = m_wallet->sendTransaction(cmd.dsts, cmd.fee, extraString, cmd.fake_outs_count, 0);
     if (tx == WALLET_LEGACY_INVALID_TRANSACTION_ID) {
-      fail_msg_writer() << "Can't send B2B";
+      fail_msg_writer() << "Can't send VGC";
       return true;
     }
 
@@ -1242,7 +1159,7 @@ bool simple_wallet::transfer(const std::vector<std::string> &args) {
 
     CryptoNote::WalletLegacyTransaction txInfo;
     m_wallet->getTransaction(tx, txInfo);
-    success_msg_writer(true) << "B2B successfully sent, transaction " << Common::podToHex(txInfo.hash);
+    success_msg_writer(true) << "VGC successfully sent, transaction " << Common::podToHex(txInfo.hash);
 
     try {
       CryptoNote::WalletHelper::storeWallet(*m_wallet, m_wallet_file);
@@ -1290,7 +1207,7 @@ bool simple_wallet::process_command(const std::vector<std::string> &args) {
 }
 
 void simple_wallet::printConnectionError() const {
-  fail_msg_writer() << "The wallet failed to connect to the B2B daemon (" << m_daemon_address << ").";
+  fail_msg_writer() << "The wallet failed to connect to the VGC daemon (" << m_daemon_address << ").";
 }
 
 
@@ -1314,6 +1231,7 @@ int main(int argc, char* argv[]) {
   command_line::add_arg(desc_params, arg_log_level);
   command_line::add_arg(desc_params, arg_testnet);
   Tools::wallet_rpc_server::init_options(desc_params);
+  command_line::add_arg(desc_params, arg_SYNC_FROM_ZERO);
   command_line::add_arg(desc_params, arg_DEFAULT_FEE);
 
   po::positional_options_description positional_options;
@@ -1368,35 +1286,22 @@ int main(int argc, char* argv[]) {
     testnet(command_line::get_arg(vm, arg_testnet)).currency();
 
   if (command_line::has_arg(vm, Tools::wallet_rpc_server::arg_rpc_bind_port)) {
- 	  /* 
- 	    If the rpc interface is run, ensure that either legacy mode or an RPC
- 	    password is set.
- 	  */
- 	  if (!command_line::has_arg(vm, Tools::wallet_rpc_server::arg_rpc_password) && !command_line::has_arg(vm, Tools::wallet_rpc_server::arg_rpc_legacy_security)) {
- 	    logger(ERROR, BRIGHT_RED) << "\n\nUse the parameter --rpc-password=YourRPCpassword when you start simplewallet in RPC mode.\nIf you dont think you are going to need the extra security with a RPC password you can start simplewallet with --rpc-legacy-security.\n\n";
- 	    return 1;
- 	  }
- 	
     //runs wallet with rpc interface
     if (!command_line::has_arg(vm, arg_wallet_file)) {
-      logger(ERROR, BRIGHT_RED) << "B2B wallet file not set.";
+      logger(ERROR, BRIGHT_RED) << "VGC wallet file not set.";
       return 1;
     }
 
     if (!command_line::has_arg(vm, arg_daemon_address)) {
-      logger(ERROR, BRIGHT_RED) << "B2B daemon address not set.";
+      logger(ERROR, BRIGHT_RED) << "VGC daemon address not set.";
       return 1;
     }
 
     if (!command_line::has_arg(vm, arg_password)) {
-      logger(ERROR, BRIGHT_RED) << "B2B wallet password not set.";
+      logger(ERROR, BRIGHT_RED) << "VGC wallet password not set.";
       return 1;
     }
 
-	  if (command_line::has_arg(vm, Tools::wallet_rpc_server::arg_rpc_password)) {
- 	    logger(INFO, BRIGHT_GREEN) << "B2B daemon started in RPC password mode.";
- 	  }
-    
     std::string wallet_file = command_line::get_arg(vm, arg_wallet_file);
     std::string wallet_password = command_line::get_arg(vm, arg_password);
     std::string daemon_address = command_line::get_arg(vm, arg_daemon_address);
@@ -1409,7 +1314,7 @@ int main(int argc, char* argv[]) {
 
     if (!daemon_address.empty()) {
       if (!parseUrlAddress(daemon_address, daemon_host, daemon_port)) {
-        logger(ERROR, BRIGHT_RED) << "Failed to parse the B2B daemon address: " << daemon_address;
+        logger(ERROR, BRIGHT_RED) << "Failed to parse the VGC daemon address: " << daemon_address;
         return 1;
       }
     }
@@ -1431,19 +1336,19 @@ int main(int argc, char* argv[]) {
     try  {
       walletFileName = ::tryToOpenWalletOrLoadKeysOrThrow(logger, wallet, wallet_file, wallet_password);
 
-      logger(INFO) << "\n\nAvailable balance: " << currency.formatAmount(wallet->actualBalance()) << " B2B\n" <<
-      "Locked amount: " << currency.formatAmount(wallet->pendingBalance()) << " B2B\n";
+      logger(INFO) << "\n\nAvailable balance: " << currency.formatAmount(wallet->actualBalance()) << " VGC\n" <<
+      "Locked amount: " << currency.formatAmount(wallet->pendingBalance()) << " VGC\n";
 
       logger(INFO, BRIGHT_GREEN) << "Loaded ok";
     } catch (const std::exception& e)  {
-      logger(ERROR, BRIGHT_RED) << "The B2B wallet initialize failed: " << e.what();
+      logger(ERROR, BRIGHT_RED) << "The VGC wallet initialize failed: " << e.what();
       return 1;
     }
 
     Tools::wallet_rpc_server wrpc(dispatcher, logManager, *wallet, *node, currency, walletFileName);
 
     if (!wrpc.init(vm)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to initialize the B2B wallet rpc server";
+      logger(ERROR, BRIGHT_RED) << "Failed to initialize the VGC wallet rpc server";
       return 1;
     }
 
@@ -1451,16 +1356,16 @@ int main(int argc, char* argv[]) {
       wrpc.send_stop_signal();
     });
 
-    logger(INFO) << "Starting the B2B wallet rpc server";
+    logger(INFO) << "Starting the VGC wallet rpc server";
     wrpc.run();
-    logger(INFO) << "Stopped the B2B wallet rpc server";
+    logger(INFO) << "Stopped the VGC wallet rpc server";
     
     try {
-      logger(INFO) << "Storing the B2B wallet...";
+      logger(INFO) << "Storing the VGC wallet...";
       CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
       logger(INFO, BRIGHT_GREEN) << "Stored ok";
     } catch (const std::exception& e) {
-      logger(ERROR, BRIGHT_RED) << "Failed to store the B2B wallet: " << e.what();
+      logger(ERROR, BRIGHT_RED) << "Failed to store the VGC wallet: " << e.what();
       return 1;
     }
   } else {
@@ -1468,7 +1373,7 @@ int main(int argc, char* argv[]) {
     CryptoNote::simple_wallet wal(dispatcher, currency, logManager);
     
     if (!wal.init(vm)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to initialize the B2B wallet"; 
+      logger(ERROR, BRIGHT_RED) << "Failed to initialize the VGC wallet"; 
       return 1; 
     }
 
@@ -1483,9 +1388,9 @@ int main(int argc, char* argv[]) {
     wal.run();
 
     if (!wal.deinit()) {
-      logger(ERROR, BRIGHT_RED) << "Failed to close the B2B wallet";
+      logger(ERROR, BRIGHT_RED) << "Failed to close the VGC wallet";
     } else {
-      logger(INFO) << "The B2B wallet closed";
+      logger(INFO) << "The VGC wallet closed";
     }
   }
   return 1;
